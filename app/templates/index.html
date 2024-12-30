@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCUTTA 2025-1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <style>
+        .container {
+            margin-top: 80px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <header class="flex justify-between items-center p-4 bg-white shadow">
+        <div class="text-xl cursor-pointer" id="menu-toggle">&#9776;</div>
+        <h1 class="text-xl font-bold">SCUTTA</h1>
+        <div class="text-sm">2025-1</div>
+    </header>
+
+    <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu(false)"></div>
+    <div class="menu" id="menu">
+        <div class="menu-header">메뉴</div>
+        <div class="menu-item" onclick="navigateTo('password.html')">관리 페이지로 이동</div>
+    </div>
+
+    <div class="container mx-auto p-4">
+        <!-- 경기 결과 제출 -->
+        <section class="bg-white shadow p-4 mb-6 rounded">
+            <h2 class="text-lg font-bold mb-4">경기 결과 제출</h2>
+            <div id="match-list">
+                <div id="match-1" class="match-row flex items-center justify-between mb-2">
+                    <input type="text" placeholder="Winner" class="winner-input border rounded w-1/3 p-1 text-center mr-2">
+                    <div class="flex gap-2">
+                        <button class="score-input px-4 py-1 border rounded" onclick="toggleScore(this, 'match-1')">3:0</button>
+                        <button class="score-input px-4 py-1 border rounded" onclick="toggleScore(this, 'match-1')">2:1</button>
+                    </div>
+                    <input type="text" placeholder="Loser" class="loser-input border rounded w-1/3 p-1 text-center ml-2">
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button class="w-1/2 bg-gray-200 text-gray-700 rounded p-2 button" onclick="addMatch()">+ 경기 추가</button>
+                <button class="w-1/2 bg-main text-white rounded p-2 button" onclick="submitMatches()">결과 제출</button>
+            </div>
+        </section>
+
+        <!-- 부문별 순위 -->
+        <section class="bg-white shadow p-4 rounded">
+            <h2 class="text-lg font-bold mb-4">부문별 순위</h2>
+            <div class="flex gap-2 mb-4">
+                <button class="px-4 py-1 border rounded selected text-sm" onclick="selectCategory(this, 'wins')">승리</button>
+                <button class="px-4 py-1 border rounded text-sm" onclick="selectCategory(this, 'losses')">패배</button>
+                <button class="px-4 py-1 border rounded text-sm" onclick="selectCategory(this, 'winRate')">승률</button>
+                <button class="px-4 py-1 border rounded text-sm" onclick="selectCategory(this, 'matches')">경기</button>
+                <button class="px-4 py-1 border rounded text-sm" onclick="selectCategory(this, 'opponents')">상대</button>
+                <button class="px-4 py-1 border rounded text-sm" onclick="selectCategory(this, 'achievements')">업적</button>
+            </div>
+            <table class="w-full border-collapse border border-gray-300 text-center">
+                <thead class="bg-gray-100" id="table-header">
+                    <tr>
+                        <th class="border border-gray-300 p-2">순위</th>
+                        <th class="border border-gray-300 p-2">부수</th>
+                        <th class="border border-gray-300 p-2">이름</th>
+                        <th class="border border-gray-300 p-2" id="dynamic-column">승리</th>
+                        <th class="border border-gray-300 p-2">경기수</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Example rows -->
+                    <tr>
+                        <td class="border border-gray-300 p-2">01</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 p-2">02</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 p-2">03</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 p-2">04</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 p-2">05</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 p-2">06</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 p-2">07</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 p-2">08</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 p-2">09</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 p-2">10</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="flex justify-between items-center mt-4">
+                <button class="bg-gray-200 text-gray-700 rounded p-2 button">더 보기</button>
+                <input type="text" placeholder="이름 검색" class="border rounded p-2 w-1/2">
+            </div>
+        </section>
+    </div>
+
+    <footer class="text-center text-gray-500 text-sm p-4">
+        SCUTTA 37기 김서영 &copy; 2025
+    </footer>
+
+    <script src="../static/js/script.js"></script>
+    <script src="../static/js/index.js"></script>
+</body>
+</html>

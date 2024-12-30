@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부수 배정</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body class="bg-gray-100">
+    <header class="flex justify-between items-center p-4 bg-white shadow">
+        <button onclick="confirmNavigation()" class="text-xl">&larr;</button>
+        <h1 class="text-xl font-bold">관리</h1>
+        <div class="text-sm">2025-1</div>
+    </header>
+
+    <!-- Index Bar -->
+    <div class="index-bar">
+        <div class="index-item" onclick="navigateTo('approval.html')">경기 승인</div>
+        <div class="index-item active" onclick="navigateTo('assignment.html')">부수 배정</div>
+        <div class="index-item" onclick="navigateTo('settings.html')">기타 설정</div>
+    </div>
+
+    <div class="container mx-auto p-4">
+        <!-- Content -->
+        <div class="content">
+            <button class="bg-main text-white px-10 py-2 rounded mb-4 button" onclick="addListItem()">부수 업데이트</button>
+            <div id="list">
+                <!-- Placeholder items -->
+                <div class="list-item" onclick="navigateToDetail('2025-03-23 SUN')">2025-03-23 SUN</div>
+                <div class="list-item" onclick="navigateToDetail('2025-03-16 SUN')">2025-03-16 SUN</div>
+                <div class="list-item" onclick="navigateToDetail('2025-03-09 SUN')">2025-03-09 SUN</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../static/js/script.js"></script>
+    <script src="../static/js/assignment.js"></script>
+</body>
+</html>
