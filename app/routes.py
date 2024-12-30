@@ -8,6 +8,22 @@ from datetime import datetime, timezone
 def index():
     return render_template('index.html')
 
+@current_app.route('/password.html')
+def password():
+    return render_template('password.html')
+
+@current_app.route('/approval.html')
+def approval():
+    return render_template('approval.html')
+
+@current_app.route('/assignment.html')
+def assignment():
+    return render_template('assignment.html')
+
+@current_app.route('/settings.html')
+def settings():
+    return render_template('settings.html')
+
 @current_app.route('/submit_match', methods=['POST'])
 def submit_match():
     data = request.get_json()
