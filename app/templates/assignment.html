@@ -25,12 +25,26 @@
     <div class="container mx-auto p-4">
         <!-- Content -->
         <div class="content">
-            <button class="bg-main text-white px-10 py-2 rounded mb-4 button" onclick="addListItem()">부수 업데이트</button>
-            <div id="list">
-                <!-- Placeholder items -->
-                <div class="list-item" onclick="navigateToDetail('2025-03-23 SUN')">2025-03-23 SUN</div>
-                <div class="list-item" onclick="navigateToDetail('2025-03-16 SUN')">2025-03-16 SUN</div>
-                <div class="list-item" onclick="navigateToDetail('2025-03-09 SUN')">2025-03-09 SUN</div>
+            <button id="update-ranks" class="bg-main text-white px-10 py-2 rounded mb-4 button">부수 업데이트</button>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold">업데이트 로그</h2>
+                <button id="delete-selected" class="bg-red-500 text-white px-4 py-2 rounded button">선택 삭제</button>
+            </div>
+            <table class="w-full border-collapse border border-gray-300 text-left">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border border-gray-300 p-2 text-center">
+                            <input type="checkbox" id="select-all">
+                        </th>
+                        <th class="border border-gray-300 p-2">제목</th>
+                    </tr>
+                </thead>
+                <tbody id="log-list"></tbody>
+            </table>
+            <div id="log-detail" class="log-detail hidden">
+                <h2 id="log-title" class="text-xl font-bold mb-4"></h2>
+                <div id="log-table-container" class="bg-white"></div>
+                <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded mt-4 button" onclick="closeLogDetail()">목록으로</button>
             </div>
         </div>
     </div>

@@ -31,3 +31,9 @@ class Match(db.Model):
 
     def __repr__(self):
         return f"<Match {self.winner_name} vs {self.loser_name}>"
+
+class UpdateLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    html_content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
