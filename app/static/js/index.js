@@ -147,7 +147,8 @@ function addMatch() {
 function submitMatches() {
     const matches = [];
     const rows = document.querySelectorAll('.match-row');
-    
+    const unknownPlayers = new Set();
+
     rows.forEach(row => {
         const winner = row.querySelector('.winner-input')?.value.trim() || '';
         const loser = row.querySelector('.loser-input')?.value.trim() || '';
@@ -162,29 +163,50 @@ function submitMatches() {
         alert("모든 필드를 채워주세요.");
         return;
     }
-    
-    fetch('/submit_match', {
+
+    // 서버에 선수 이름 확인 요청
+    fetch('/check_players', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(matches)
+        body: JSON.stringify({ matches })
     })
     .then(response => response.json())
     .then(data => {
-        if (data.error) {
-            alert(data.error);
-        } else {
-            alert(data.message);
-            document.getElementById('match-list').innerHTML = `
-                <div id="match-1" class="flex items-center justify-between mb-2">
-                    <input type="text" placeholder="Winner" class="winner-input border rounded w-1/3 p-1 text-center mr-2">
-                    <div class="flex gap-2">
-                        <button class="px-4 py-1 score-input border rounded" onclick="toggleScore(this, 'match-1')">3:0</button>
-                        <button class="px-4 py-1 score-input border rounded" onclick="toggleScore(this, 'match-1')">2:1</button>
-                    </div>
-                    <input type="text" placeholder="Loser" class="loser-input border rounded w-1/3 p-1 text-center ml-2">
-                </div>
-            `;
-            matchCounter = 1;
+        if (data.unknownPlayers.length > 0) {
+            alert(`${data.unknownPlayers.join(', ')}이(가) 없습니다.`);
+        }
+
+        const validMatches = matches.filter(match =>
+            !data.unknownPlayers.includes(match.winner) &&
+            !data.unknownPlayers.includes(match.loser)
+        );
+
+        if (validMatches.length > 0) {
+            fetch('/submit_match', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(validMatches)
+            })
+            .then(response => response.json())
+            .then(submitData => {
+                if (submitData.error) {
+                    alert(submitData.error);
+                } else {
+                    alert(submitData.message);
+                    document.getElementById('match-list').innerHTML = `
+                        <div id="match-1" class="flex items-center justify-between mb-2">
+                            <input type="text" placeholder="Winner" class="winner-input border rounded w-1/3 p-1 text-center mr-2">
+                            <div class="flex gap-2">
+                                <button class="px-4 py-1 score-input border rounded" onclick="toggleScore(this, 'match-1')">3:0</button>
+                                <button class="px-4 py-1 score-input border rounded" onclick="toggleScore(this, 'match-1')">2:1</button>
+                            </div>
+                            <input type="text" placeholder="Loser" class="loser-input border rounded w-1/3 p-1 text-center ml-2">
+                        </div>
+                    `;
+                    matchCounter = 1;
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
     })
     .catch(error => console.error('Error:', error));
