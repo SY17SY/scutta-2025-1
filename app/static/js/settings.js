@@ -40,9 +40,9 @@ function loadPlayers() {
                     <td><input type="checkbox" class="row-checkbox" data-id="${player.id}"></td>
                     <td>${player.name}</td>
                     <td>${player.win_count}</td>
-                    <td>${(player.win_rate).toFixed(2)}%</td>
+                    <td>${player.win_rate}%</td>
                     <td>${player.match_count}</td>
-                    <td>${player.achievements || '-'}</td>
+                    <td>${player.achievements}</td>
                 `;
                 tbody.appendChild(row);
             });

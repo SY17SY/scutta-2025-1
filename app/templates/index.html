@@ -50,7 +50,7 @@
         <section class="bg-white shadow p-4 rounded">
             <h2 class="text-lg font-bold mb-4">부문별 순위</h2>
             <div class="flex gap-2 mb-4">
-                <button class="px-4 py-1 border rounded selected text-sm" onclick="selectCategory(this, 'wins')">승리</button>
+                <button class="px-4 py-1 selected border rounded text-sm" onclick="selectCategory(this, 'wins')">승리</button>
                 <button class="px-4 py-1 border rounded text-sm" onclick="selectCategory(this, 'losses')">패배</button>
                 <button class="px-4 py-1 border rounded text-sm" onclick="selectCategory(this, 'winRate')">승률</button>
                 <button class="px-4 py-1 border rounded text-sm" onclick="selectCategory(this, 'matches')">경기</button>
@@ -68,82 +68,11 @@
                     </tr>
                 </thead>
                 <tbody id="table-body">
-                    <!-- Example rows -->
-                    <tr>
-                        <td class="border border-gray-300 p-2">01</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                    </tr>
-                    <tr>
-                        <td class="border border-gray-300 p-2">02</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                    </tr>
-                    <tr>
-                        <td class="border border-gray-300 p-2">03</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                    </tr>
-                    <tr>
-                        <td class="border border-gray-300 p-2">04</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                    </tr>
-                    <tr>
-                        <td class="border border-gray-300 p-2">05</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                    </tr>
-                    <tr>
-                        <td class="border border-gray-300 p-2">06</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                    </tr>
-                    <tr>
-                        <td class="border border-gray-300 p-2">07</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                    </tr>
-                    <tr>
-                        <td class="border border-gray-300 p-2">08</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                    </tr>
-                    <tr>
-                        <td class="border border-gray-300 p-2">09</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                    </tr>
-                    <tr>
-                        <td class="border border-gray-300 p-2">10</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
-                    </tr>
                 </tbody>
             </table>
             <div class="flex justify-between items-center mt-4">
-                <button class="bg-gray-200 text-gray-700 rounded p-2 button">더 보기</button>
-                <input type="text" placeholder="이름 검색" class="border rounded p-2 w-1/2">
+                <button class="bg-gray-200 text-gray-700 rounded p-2 button" onclick="loadMore()">더 보기</button>
+                <input type="text" placeholder="이름 검색" class="border rounded p-2 w-1/2" oninput="searchByName(this.value)">
             </div>
         </section>
     </div>
