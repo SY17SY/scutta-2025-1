@@ -1,5 +1,3 @@
-# app/models.py
-
 from app import db
 from datetime import datetime, timezone
 
