@@ -80,7 +80,7 @@ header {
     justify-content: space-between;
     border-bottom: 1px solid #ddd;
     position: fixed;
-    top: 80px;
+    top: 40px;
     width: 100%;
     background: #fafafa;
     z-index: 999;
