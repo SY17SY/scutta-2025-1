@@ -226,3 +226,16 @@ def delete_players():
     db.session.commit()
 
     return jsonify({'success': True})
+
+@current_app.route('/check_players', methods=['POST'])
+def check_players():
+    matches = request.json.get('matches', [])
+    player_names = set()
+    for match in matches:
+        player_names.add(match['winner'])
+        player_names.add(match['loser'])
+
+    existing_players = {player.name for player in Player.query.filter(Player.name.in_(player_names)).all()}
+    unknown_players = list(player_names - existing_players)
+
+    return jsonify({'unknownPlayers': unknown_players})
