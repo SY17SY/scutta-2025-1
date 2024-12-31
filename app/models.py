@@ -22,10 +22,12 @@ class Player(db.Model):
 class Match(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     winner = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    winner_name = db.Column(db.String(100), nullable=False)
     loser = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    loser_name = db.Column(db.String(100), nullable=False)
     score = db.Column(db.String(10), nullable=False)
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     approved = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
-        return f"<Match {self.winner} vs {self.loser}>"
+        return f"<Match {self.winner_name} vs {self.loser_name}>"
