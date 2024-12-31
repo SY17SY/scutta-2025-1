@@ -97,10 +97,13 @@ def approve_matches():
         if winner:
             winner.match_count += 1
             winner.win_count += 1
+            winner.win_rate = (winner.win_count / winner.match_count) * 100 if winner.match_count > 0 else 0
+            print(winner.win_rate)
             winner.opponent_count = calculate_opponent_count(winner.id)
         if loser:
             loser.match_count += 1
             loser.loss_count += 1
+            loser.win_rate = (loser.win_count / loser.match_count) * 100 if winner.match_count > 0 else 0
             loser.opponent_count = calculate_opponent_count(loser.id)
     
     db.session.commit()
@@ -109,6 +112,22 @@ def approve_matches():
 @current_app.route('/delete_matches', methods=['POST'])
 def delete_matches():
     ids = request.json.get('ids', [])
+    matches = Match.query.filter(Match.id.in_(ids), Match.approved == True).all()
+
+    for match in matches:
+        winner = Player.query.get(match.winner)
+        loser = Player.query.get(match.loser)
+        if winner:
+            winner.match_count -= 1
+            winner.win_count -= 1
+            winner.win_rate = (winner.win_count / winner.match_count) * 100 if winner.match_count > 0 else 0
+            winner.opponent_count = calculate_opponent_count(winner.id)
+        if loser:
+            loser.match_count -= 1
+            loser.loss_count -= 1
+            loser.win_rate = (loser.win_count / loser.match_count) * 100 if loser.match_count > 0 else 0
+            loser.opponent_count = calculate_opponent_count(loser.id)
+
     Match.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
     db.session.commit()
     return jsonify({'success': True, 'message': '선택한 경기가 삭제되었습니다.'})
@@ -145,4 +164,43 @@ def calculate_opponent_count(player_id):
 
     return len(opponent_ids)
 
+@current_app.route('/register_players', methods=['POST'])
+def register_players():
+    data = request.get_json()
+    players = data.get('players', [])
+    added_count = 0
 
+    for name in players:
+        if not Player.query.filter_by(name=name).first():
+            new_player = Player(name=name)
+            db.session.add(new_player)
+            added_count += 1
+
+    db.session.commit()
+    return jsonify({'success': True, 'added_count': added_count})
+
+@current_app.route('/get_players', methods=['GET'])
+def get_players():
+    players = Player.query.order_by(Player.name).all()
+    response = []
+    for player in players:
+        response.append({
+            'id': player.id,
+            'name': player.name,
+            'win_count': player.win_count,
+            'win_rate': player.win_rate,
+            'match_count': player.match_count,
+            'achievements': player.achievements
+        })
+        print(player.win_rate)
+    return jsonify(response)
+
+@current_app.route('/delete_players', methods=['POST'])
+def delete_players():
+    data = request.get_json()
+    ids = data.get('ids', [])
+
+    Player.query.filter(Player.id.in_(ids)).delete(synchronize_session=False)
+    db.session.commit()
+
+    return jsonify({'success': True})
