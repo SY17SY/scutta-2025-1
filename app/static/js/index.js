@@ -1,3 +1,12 @@
+let currentOffset = 0;
+const limit = 10;
+let allPlayers = [];
+let currentCategory = 'wins';
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadRankings(currentCategory);
+});
+
 function toggleMenu(show) {
     const menu = document.getElementById('menu');
     const overlay = document.getElementById('menu-overlay');
@@ -13,12 +22,83 @@ function toggleMenu(show) {
 
 document.getElementById('menu-toggle').addEventListener('click', () => toggleMenu(true));
 
-let matchCounter = 1;
+function loadRankings(category, append = false) {
+    if (!append) {
+        currentOffset = 0;
+        currentCategory = category;
+        allPlayers = []; // 초기화
+    }
 
-function toggleScore(button, matchId) {
-    const buttons = document.querySelectorAll(`#${matchId} .score-input`);
-    buttons.forEach(btn => btn.classList.remove('selected'));
-    button.classList.add('selected');
+    fetch(`/rankings?category=${category}&offset=${currentOffset}&limit=${limit}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('데이터를 불러오는 중 문제가 발생했습니다.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const rankedData = data.map((player, index) => ({
+                ...player,
+                current_rank: index + 1 + currentOffset, // 순위 계산
+            }));
+
+            allPlayers = append ? [...allPlayers, ...rankedData] : rankedData;
+
+            updateTable(rankedData, append);
+            currentOffset += limit;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error.message);
+        });
+}
+
+function updateTable(data, append) {
+    const tableBody = document.getElementById('table-body');
+    if (!append) {
+        tableBody.innerHTML = '';
+    }
+
+    data.forEach(player => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="border border-gray-300 p-2">${player.current_rank}</td>
+            <td class="border border-gray-300 p-2">${player.rank || '무'}</td>
+            <td class="border border-gray-300 p-2">${player.name || ' '}</td>
+            <td class="border border-gray-300 p-2">${player.category_value || 0}</td>
+            <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+function loadMore() {
+    loadRankings(currentCategory, true);
+}
+
+function searchByName(query) {
+    const tableBody = document.getElementById('table-body');
+    const filteredPlayers = allPlayers.filter(player =>
+        player.name.toLowerCase().includes(query.toLowerCase())
+    );
+
+    tableBody.innerHTML = '';
+
+    filteredPlayers.forEach(player => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="border border-gray-300 p-2">${player.current_rank}</td>
+            <td class="border border-gray-300 p-2">${player.rank || '무'}</td>
+            <td class="border border-gray-300 p-2">${player.name || ' '}</td>
+            <td class="border border-gray-300 p-2">${player.category_value?.toFixed(2) || 0}</td>
+            <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    if (filteredPlayers.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5">검색 결과가 없습니다.</td></tr>';
+    }
 }
 
 function selectCategory(button, category) {
@@ -29,42 +109,22 @@ function selectCategory(button, category) {
         wins: '승리',
         losses: '패배',
         winRate: '승률',
-        matches: '경기',
+        matches: '승률',
         opponents: '상대',
         achievements: '업적',
     };
     const dynamicColumn = document.getElementById('dynamic-column');
     dynamicColumn.textContent = columnNames[category] || '정보';
 
-    const tableBody = document.getElementById('rankings-table-body');
-    tableBody.innerHTML = '<tr><td colspan="4">데이터 로딩 중...</td></tr>';
+    loadRankings(category, false);
+}
 
-    fetch(`/rankings?category=${category}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('데이터를 불러오는 중 문제가 발생했습니다.');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="4">데이터가 없습니다.</td></tr>';
-                return;
-            }
-            tableBody.innerHTML = data.map(row => `
-                <tr>
-                    <td>${row.rank}</td>
-                    <td>${row.name}</td>
-                    <td>${row.category_value}</td>
-                    <td>${row.match_count}</td>
-                </tr>
-            `).join('');
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            tableBody.innerHTML = '<tr><td colspan="4">데이터 로드 실패</td></tr>';
-            alert(error.message);
-        });
+let matchCounter = 1;
+
+function toggleScore(button, matchId) {
+    const buttons = document.querySelectorAll(`#${matchId} .score-input`);
+    buttons.forEach(btn => btn.classList.remove('selected'));
+    button.classList.add('selected');
 }
 
 function addMatch() {

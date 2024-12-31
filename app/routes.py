@@ -1,6 +1,7 @@
 from flask import render_template, current_app
 from flask import request, jsonify
 from app import db
+from sqlalchemy import desc
 from app.models import Match, Player
 from datetime import datetime, timezone
 
@@ -70,20 +71,43 @@ def submit_match():
 
 @current_app.route('/rankings', methods=['GET'])
 def rankings():
-    category = request.args.get('category', 'win_count')  # 기본 정렬 기준: 승리수
-    players = Player.query.order_by(getattr(Player, category).desc()).limit(10).all()
+    category = request.args.get('category', 'wins')
+    offset = int(request.args.get('offset', 0))
+    limit = int(request.args.get('limit', 10))
 
-    rankings = [
+    category_mapping = {
+        'wins': 'win_count',
+        'losses': 'loss_count',
+        'winRate': 'win_rate',
+        'matches': 'match_count',
+        'opponents': 'opponent_count',
+        'achievements': 'achievements'
+    }
+
+    field = category_mapping.get(category)
+    if not field:
+        return jsonify([])
+
+    players = Player.query.order_by(
+        desc(getattr(Player, field)),
+        desc(Player.match_count)
+    ).offset(offset).limit(limit).all()
+    
+    if category == 'matches':
+        field = 'win_rate'
+
+    response = [
         {
-            "rank": idx + 1,
-            "name": player.name,
-            "category_value": getattr(player, category),
-            "match_count": player.match_count
+            'current_rank': index + 1 + offset,  # 순위 계산
+            'rank': player.rank or '무',
+            'name': player.name,
+            'category_value': getattr(player, field, 0),
+            'match_count': player.match_count or 0
         }
-        for idx, player in enumerate(players)
+        for index, player in enumerate(players)
     ]
 
-    return jsonify(rankings)
+    return jsonify(response)
 
 @current_app.route('/approve_matches', methods=['POST'])
 def approve_matches():
@@ -97,13 +121,12 @@ def approve_matches():
         if winner:
             winner.match_count += 1
             winner.win_count += 1
-            winner.win_rate = (winner.win_count / winner.match_count) * 100 if winner.match_count > 0 else 0
-            print(winner.win_rate)
+            winner.win_rate = round((winner.win_count / winner.match_count) * 100, 2) if winner.match_count > 0 else 0
             winner.opponent_count = calculate_opponent_count(winner.id)
         if loser:
             loser.match_count += 1
             loser.loss_count += 1
-            loser.win_rate = (loser.win_count / loser.match_count) * 100 if winner.match_count > 0 else 0
+            loser.win_rate = round((loser.win_count / loser.match_count) * 100, 2) if winner.match_count > 0 else 0
             loser.opponent_count = calculate_opponent_count(loser.id)
     
     db.session.commit()
@@ -120,12 +143,12 @@ def delete_matches():
         if winner:
             winner.match_count -= 1
             winner.win_count -= 1
-            winner.win_rate = (winner.win_count / winner.match_count) * 100 if winner.match_count > 0 else 0
+            winner.win_rate = round((winner.win_count / winner.match_count) * 100, 2) if winner.match_count > 0 else 0
             winner.opponent_count = calculate_opponent_count(winner.id)
         if loser:
             loser.match_count -= 1
             loser.loss_count -= 1
-            loser.win_rate = (loser.win_count / loser.match_count) * 100 if loser.match_count > 0 else 0
+            loser.win_rate = round((loser.win_count / loser.match_count) * 100, 2) if loser.match_count > 0 else 0
             loser.opponent_count = calculate_opponent_count(loser.id)
 
     Match.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
@@ -192,7 +215,6 @@ def get_players():
             'match_count': player.match_count,
             'achievements': player.achievements
         })
-        print(player.win_rate)
     return jsonify(response)
 
 @current_app.route('/delete_players', methods=['POST'])
