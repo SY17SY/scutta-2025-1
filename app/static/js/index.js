@@ -16,7 +16,7 @@ document.getElementById('menu-toggle').addEventListener('click', () => toggleMen
 let matchCounter = 1;
 
 function toggleScore(button, matchId) {
-    const buttons = document.querySelectorAll(`#${matchId} score-input`);
+    const buttons = document.querySelectorAll(`#${matchId} .score-input`);
     buttons.forEach(btn => btn.classList.remove('selected'));
     button.classList.add('selected');
 }
@@ -97,8 +97,6 @@ function submitMatches() {
             matches.push({ winner, loser, score });
         }
     });
-
-    console.log("Matches array to send:", matches); // 확인용 콘솔 출력
 
     if (matches.length === 0) {
         alert("모든 필드를 채워주세요.");
