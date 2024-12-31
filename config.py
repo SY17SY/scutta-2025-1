@@ -1,1 +1,5 @@
-SQLALCHEMY_DATABASE_URI = 'postgresql://scutta_user:yeong6701@localhost/scutta_2025_1'
+import os
+
+class Config:
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
