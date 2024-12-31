@@ -33,11 +33,11 @@
         <!-- Action Buttons -->
         <div class="action-buttons">
             <div class="left-buttons">
-                <button class="bg-main text-white px-4 py-2 rounded button" onclick="approveAll()">전체 승인</button>
-                <button class="bg-main text-white px-4 py-2 rounded button" onclick="approveSelected()">선택 승인</button>
+                <button class="bg-main text-white px-4 py-2 rounded button" onclick="approveMatches(selectAllMatches())">전체 승인</button>
+                <button class="bg-main text-white px-4 py-2 rounded button" onclick="approveMatches(selectMatches())">선택 승인</button>
             </div>
             <div class="right-buttons">
-                <button class="bg-red-500 text-white px-4 py-2 rounded button" onclick="deleteSelected()">선택 삭제</button>
+                <button class="bg-red-500 text-white px-4 py-2 rounded button" onclick="deleteMatches(selectMatches())">선택 삭제</button>
             </div>
         </div>
 

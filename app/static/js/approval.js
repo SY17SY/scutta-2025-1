@@ -46,70 +46,43 @@ function filterMatches(status) {
     });
 }
 
-function approveAll() {
-    fetch('/approve_all', { method: 'POST' })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('모든 경기가 승인되었습니다.');
-                loadMatches();
-            } else {
-                alert('오류가 발생했습니다. 다시 시도해주세요.');
-            }
-        })
-        .catch(error => console.error('Error approving all matches:', error));
-}
-
-function approveSelected() {
-    const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked'))
-        .map(cb => cb.getAttribute('data-id'));
-
-    if (selectedIds.length === 0) {
-        alert('승인할 경기를 선택해주세요.');
-        return;
-    }
-
-    fetch('/approve_selected', {
+function approveMatches(ids) {
+    fetch('/approve_matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: selectedIds })
+        body: JSON.stringify({ ids })
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                alert('선택한 경기가 승인되었습니다.');
-                loadMatches();
-            } else {
-                alert('오류가 발생했습니다. 다시 시도해주세요.');
-            }
+            alert(data.message);
+            loadMatches();
         })
-        .catch(error => console.error('Error approving selected matches:', error));
+        .catch(error => console.error('Error approving matches:', error));
 }
 
-function deleteSelected() {
-    const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked'))
-        .map(cb => cb.getAttribute('data-id'));
-
-    if (selectedIds.length === 0) {
-        alert('삭제할 경기를 선택해주세요.');
-        return;
-    }
-
-    fetch('/delete_selected', {
+function deleteMatches(ids) {
+    fetch('/delete_matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: selectedIds })
+        body: JSON.stringify({ ids })
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                alert('선택한 경기가 삭제되었습니다.');
-                loadMatches();
-            } else {
-                alert('오류가 발생했습니다. 다시 시도해주세요.');
-            }
+            alert(data.message);
+            loadMatches();
         })
-        .catch(error => console.error('Error deleting selected matches:', error));
+        .catch(error => console.error('Error deleting matches:', error));
+}
+
+function selectMatches() {
+    return Array.from(document.querySelectorAll('.row-checkbox:checked'))
+        .map(cb => cb.getAttribute('data-id'));
+}
+
+function selectAllMatches() {
+    return Array.from(document.querySelectorAll('.row-checkbox'))
+        .filter(cb => !cb.closest('tr').querySelector('td:nth-child(4)').textContent.includes('승인 완료'))
+        .map(cb => cb.getAttribute('data-id'));
 }
 
 function toggleSelectAll(checkbox) {

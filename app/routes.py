@@ -24,21 +24,6 @@ def assignment():
 def settings():
     return render_template('settings.html')
 
-@current_app.route('/get_matches', methods=['GET'])
-def get_matches():
-    matches = Match.query.order_by(Match.approved, Match.timestamp.desc()).all()
-    response = [
-        {
-            'id': match.id,
-            'winner_name': match.winner_name,
-            'score': match.score,
-            'loser_name': match.loser_name,
-            'approved': match.approved
-        }
-        for match in matches
-    ]
-    return jsonify(response)
-
 @current_app.route('/submit_match', methods=['POST'])
 def submit_match():
     data = request.get_json()
@@ -100,35 +85,64 @@ def rankings():
 
     return jsonify(rankings)
 
-@current_app.route('/approve_all', methods=['POST'])
-def approve_all():
-    matches = Match.query.filter_by(approved=False).all()
+@current_app.route('/approve_matches', methods=['POST'])
+def approve_matches():
+    ids = request.json.get('ids', [])
+    matches = Match.query.filter(Match.id.in_(ids), Match.approved == False).all()
+
     for match in matches:
         match.approved = True
+        winner = Player.query.get(match.winner)
+        loser = Player.query.get(match.loser)
+        if winner:
+            winner.match_count += 1
+            winner.win_count += 1
+            winner.opponent_count = calculate_opponent_count(winner.id)
+        if loser:
+            loser.match_count += 1
+            loser.loss_count += 1
+            loser.opponent_count = calculate_opponent_count(loser.id)
+    
     db.session.commit()
-    return {'success': True, 'message': '모든 경기가 승인되었습니다.'}
+    return jsonify({'success': True, 'message': '선택한 경기가 승인되었습니다.'})
 
-@current_app.route('/approve_selected', methods=['POST'])
-def approve_selected():
-    data = request.get_json()
-    if not data or 'ids' not in data:
-        return {'success': False, 'error': '승인할 경기 ID가 제공되지 않았습니다.'}, 400
+@current_app.route('/delete_matches', methods=['POST'])
+def delete_matches():
+    ids = request.json.get('ids', [])
+    Match.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
+    db.session.commit()
+    return jsonify({'success': True, 'message': '선택한 경기가 삭제되었습니다.'})
 
-    selected_ids = data['ids']
-    matches = Match.query.filter(Match.id.in_(selected_ids)).all()
+@current_app.route('/get_matches', methods=['GET'])
+def get_matches():
+    matches = Match.query.order_by(Match.approved, Match.timestamp.desc()).all()
+    response = [
+        {
+            'id': match.id,
+            'winner_name': Player.query.get(match.winner).name if Player.query.get(match.winner) else '',
+            'loser_name': Player.query.get(match.loser).name if Player.query.get(match.loser) else '',
+            'score': match.score,
+            'approved': match.approved
+        }
+        for match in matches
+    ]
+    return jsonify(response)
+
+def calculate_opponent_count(player_id):
+    from sqlalchemy import or_
+    
+    matches = Match.query.filter(
+        or_(Match.winner == player_id, Match.loser == player_id),
+        Match.approved == True
+    ).all()
+
+    opponent_ids = set()
     for match in matches:
-        match.approved = True
-    db.session.commit()
-    return {'success': True, 'message': f'{len(matches)}개의 경기가 승인되었습니다.'}
+        if match.winner == player_id:
+            opponent_ids.add(match.loser)
+        elif match.loser == player_id:
+            opponent_ids.add(match.winner)
 
-@current_app.route('/delete_selected', methods=['POST'])
-def delete_selected():
-    data = request.get_json()
-    if not data or 'ids' not in data:
-        return {'success': False, 'error': '삭제할 경기 ID가 제공되지 않았습니다.'}, 400
+    return len(opponent_ids)
 
-    selected_ids = data['ids']
-    Match.query.filter(Match.id.in_(selected_ids)).delete(synchronize_session=False)
-    db.session.commit()
-    return {'success': True, 'message': f'{len(selected_ids)}개의 경기가 삭제되었습니다.'}
 
