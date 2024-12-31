@@ -23,7 +23,7 @@ function loadMatches() {
                     <td>${match.winner_name}</td>
                     <td>${match.score}</td>
                     <td>${match.loser_name}</td>
-                    <td>${match.approved ? '승인 완료' : '승인 대기'}</td>
+                    <td>${match.approved ? '승인' : '미승인'}</td>
                     <td><input type="checkbox" class="row-checkbox" data-id="${match.id}"></td>
                 `;
                 tbody.appendChild(row);
@@ -37,8 +37,8 @@ function filterMatches(status) {
     rows.forEach(row => {
         const approvedCell = row.cells[3].textContent;
         if (status === 'all' ||
-            (status === 'pending' && approvedCell === '승인 대기') ||
-            (status === 'approved' && approvedCell === '승인 완료')) {
+            (status === 'pending' && approvedCell === '미승인') ||
+            (status === 'approved' && approvedCell === '승인')) {
             row.style.display = '';
         } else {
             row.style.display = 'none';

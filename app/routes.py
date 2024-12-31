@@ -119,8 +119,8 @@ def get_matches():
     response = [
         {
             'id': match.id,
-            'winner_name': Player.query.get(match.winner).name if Player.query.get(match.winner) else '',
-            'loser_name': Player.query.get(match.loser).name if Player.query.get(match.loser) else '',
+            'winner_name': match.winner_name,
+            'loser_name': match.loser_name,
             'score': match.score,
             'approved': match.approved
         }
