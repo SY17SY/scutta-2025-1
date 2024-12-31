@@ -2,7 +2,7 @@ from flask import render_template, current_app
 from flask import request, jsonify
 from app import db
 from sqlalchemy import desc
-from app.models import Match, Player
+from app.models import Match, Player, UpdateLog
 from datetime import datetime, timezone
 
 @current_app.route('/')
@@ -239,3 +239,111 @@ def check_players():
     unknown_players = list(player_names - existing_players)
 
     return jsonify({'unknownPlayers': unknown_players})
+
+@current_app.route('/update_ranks', methods=['POST'])
+def update_ranks():
+    try:
+        players = Player.query.filter(Player.match_count >= 3).order_by(
+            Player.win_rate.desc(), Player.match_count.desc()
+        ).all()
+
+        total_players = len(players)
+        cal_quotas = [round(total_players * p) for p in [0.07, 0.17, 0.29, 0.43, 0.57, 0.71, 0.83, 0.93, 1.00]]
+        quotas = []
+        for i in range(9):
+            result = cal_quotas[i]
+            for j in range(i):
+                result = cal_quotas[i] - quotas[j]
+            quotas.append(result)
+    
+        for player in players:
+            if player.win_rate == 100 and player.match_count < 7:
+                player.previous_rank = 5
+                quotas[4] -= 1
+
+        current_rank = 1
+        for player in players:
+            if player.previous_rank is None:
+                while quotas[current_rank - 1] == 0:
+                    current_rank += 1
+                player.previous_rank = current_rank
+                quotas[current_rank - 1] -= 1
+
+        for player in Player.query.filter(Player.match_count < 15).all():
+            player.previous_rank = None
+
+        for player in players:
+            if player.previous_rank is None:
+                player.rank_change = None
+            elif player.rank is None:
+                player.rank_change = 'New'
+            elif player.previous_rank < player.rank:
+                player.rank_change = 'Up'
+            elif player.previous_rank > player.rank:
+                player.rank_change = 'Down'
+            else:
+                player.rank_change = None
+
+        table_rows = [
+            f"""
+            <tr>
+                <td class="border border-gray-300 p-2">{p.name}</td>
+                <td class="border border-gray-300 p-2">{p.rank or '무'}</td>
+                <td class="border border-gray-300 p-2">{p.previous_rank or '무'}</td>
+                <td class="border border-gray-300 p-2">{p.win_rate:.2f}%</td>
+                <td class="border border-gray-300 p-2">{p.rank_change or ''}</td>
+            </tr>
+            """
+            for p in Player.query.order_by(Player.win_rate.desc()).filter(Player.rank_change.isnot(None)).all()
+        ]
+
+        html_content = f"""
+        <div>
+            <table class="w-full border-collapse border border-gray-300 text-center">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border border-gray-300 p-2">{total_players}명</th>
+                        <th class="border border-gray-300 p-2">전</th>
+                        <th class="border border-gray-300 p-2">후</th>
+                        <th class="border border-gray-300 p-2">승률</th>
+                        <th class="border border-gray-300 p-2">변동</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join(table_rows)}
+                </tbody>
+            </table>
+        </div>
+        """
+
+        log = UpdateLog(title=str(datetime.now().date()), html_content=html_content)
+        db.session.add(log)
+
+        for player in Player.query.all():
+            player.rank = player.previous_rank
+            player.previous_rank = None
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': '부수 업데이트가 완료되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@current_app.route('/logs', methods=['GET'])
+def get_logs():
+    logs = UpdateLog.query.order_by(UpdateLog.timestamp.desc()).all()
+    return jsonify([{'id': log.id, 'title': log.title} for log in logs])
+
+@current_app.route('/delete_logs', methods=['POST'])
+def delete_logs():
+    ids = request.json.get('ids', [])
+    UpdateLog.query.filter(UpdateLog.id.in_(ids)).delete(synchronize_session=False)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@current_app.route('/log/<int:log_id>', methods=['GET'])
+def get_log_detail(log_id):
+    log = UpdateLog.query.get(log_id)
+    if not log:
+        return jsonify({'error': '로그를 찾을 수 없습니다.'}), 404
+
+    return jsonify({'title': log.title, 'html_content': log.html_content})
