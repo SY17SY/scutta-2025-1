@@ -24,13 +24,26 @@ def assignment():
 def settings():
     return render_template('settings.html')
 
+@current_app.route('/get_matches', methods=['GET'])
+def get_matches():
+    matches = Match.query.order_by(Match.approved, Match.timestamp.desc()).all()
+    response = [
+        {
+            'id': match.id,
+            'winner_name': match.winner_name,
+            'score': match.score,
+            'loser_name': match.loser_name,
+            'approved': match.approved
+        }
+        for match in matches
+    ]
+    return jsonify(response)
+
 @current_app.route('/submit_match', methods=['POST'])
 def submit_match():
     data = request.get_json()
     
-    print("Received data: ", data)
-    
-    if not data or not isinstance(data, list):  # 데이터가 배열 형태인지 확인
+    if not data or not isinstance(data, list):
         return jsonify({"error": "올바른 데이터를 제출해주세요."}), 400
 
     for match in data:
@@ -55,10 +68,16 @@ def submit_match():
             db.session.add(loser)
         
         db.session.flush()
-        print(f"Winner ID: {winner.id}, Loser ID: {loser.id}")
         
         new_match = Match(
-            winner=winner.id, loser=loser.id, score=score_value, timestamp=datetime.now(timezone.utc), approved=False)
+            winner=winner.id, 
+            winner_name=winner.name, 
+            loser=loser.id, 
+            loser_name=loser.name, 
+            score=score_value, 
+            timestamp=datetime.now(timezone.utc), 
+            approved=False
+        )
         db.session.add(new_match)
     
     db.session.commit()
@@ -80,4 +99,36 @@ def rankings():
     ]
 
     return jsonify(rankings)
+
+@current_app.route('/approve_all', methods=['POST'])
+def approve_all():
+    matches = Match.query.filter_by(approved=False).all()
+    for match in matches:
+        match.approved = True
+    db.session.commit()
+    return {'success': True, 'message': '모든 경기가 승인되었습니다.'}
+
+@current_app.route('/approve_selected', methods=['POST'])
+def approve_selected():
+    data = request.get_json()
+    if not data or 'ids' not in data:
+        return {'success': False, 'error': '승인할 경기 ID가 제공되지 않았습니다.'}, 400
+
+    selected_ids = data['ids']
+    matches = Match.query.filter(Match.id.in_(selected_ids)).all()
+    for match in matches:
+        match.approved = True
+    db.session.commit()
+    return {'success': True, 'message': f'{len(matches)}개의 경기가 승인되었습니다.'}
+
+@current_app.route('/delete_selected', methods=['POST'])
+def delete_selected():
+    data = request.get_json()
+    if not data or 'ids' not in data:
+        return {'success': False, 'error': '삭제할 경기 ID가 제공되지 않았습니다.'}, 400
+
+    selected_ids = data['ids']
+    Match.query.filter(Match.id.in_(selected_ids)).delete(synchronize_session=False)
+    db.session.commit()
+    return {'success': True, 'message': f'{len(selected_ids)}개의 경기가 삭제되었습니다.'}
 

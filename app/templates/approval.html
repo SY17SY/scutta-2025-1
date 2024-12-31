@@ -25,19 +25,19 @@
     <div class="container mx-auto p-4">
         <!-- Tabs -->
         <div class="tabs">
-            <div class="tab active text-sm">전체</div>
-            <div class="tab text-sm">승인 대기</div>
-            <div class="tab text-sm">승인 완료</div>
+            <div class="tab active text-sm" onclick="filterMatches('all')">전체</div>
+            <div class="tab text-sm" onclick="filterMatches('pending')">승인 대기</div>
+            <div class="tab text-sm" onclick="filterMatches('approved')">승인 완료</div>
         </div>
 
         <!-- Action Buttons -->
         <div class="action-buttons">
             <div class="left-buttons">
-                <button class="bg-main text-white px-4 py-2 rounded button">전체 승인</button>
-                <button class="bg-main text-white px-4 py-2 rounded button">선택 승인</button>
+                <button class="bg-main text-white px-4 py-2 rounded button" onclick="approveAll()">전체 승인</button>
+                <button class="bg-main text-white px-4 py-2 rounded button" onclick="approveSelected()">선택 승인</button>
             </div>
             <div class="right-buttons">
-                <button class="bg-red-500 text-white px-4 py-2 rounded button">선택 삭제</button>
+                <button class="bg-red-500 text-white px-4 py-2 rounded button" onclick="deleteSelected()">선택 삭제</button>
             </div>
         </div>
 
@@ -53,30 +53,8 @@
                     <th><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- Placeholder rows -->
-                <tr>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td><input type="checkbox" class="row-checkbox"></td>
-                </tr>
-                <tr>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td><input type="checkbox" class="row-checkbox"></td>
-                </tr>
-                <tr>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td><input type="checkbox" class="row-checkbox"></td>
-                </tr>
-                <!-- Add more rows as needed -->
+            <tbody id="match-table-body">
+                <!-- Data rows will be inserted dynamically here -->
             </tbody>
         </table>
     </div>
