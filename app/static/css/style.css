@@ -1,9 +1,12 @@
 body {
     font-family: 'Pretendard';
+    margin-top: 0;
+    padding-top: 120px;
 }
 
 header {
     position: fixed;
+    height: 60px;
     top: 0;
     width: 100%;
     z-index: 1000;
@@ -80,7 +83,8 @@ header {
     justify-content: space-between;
     border-bottom: 1px solid #ddd;
     position: fixed;
-    top: 70px;
+    top: 60px;
+    height: 60px;
     width: 100%;
     background: #fafafa;
     z-index: 999;
