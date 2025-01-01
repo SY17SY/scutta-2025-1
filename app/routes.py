@@ -4,6 +4,9 @@ from app import db
 from sqlalchemy import desc
 from app.models import Match, Player, UpdateLog
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
+
+seoul_time = datetime.now(ZoneInfo("Asia.Seoul"))
 
 @current_app.route('/')
 def index():
@@ -61,7 +64,7 @@ def submit_match():
             loser=loser.id, 
             loser_name=loser.name, 
             score=score_value, 
-            timestamp=datetime.now(timezone.utc), 
+            timestamp=seoul_time, 
             approved=False
         )
         db.session.add(new_match)
@@ -98,7 +101,7 @@ def rankings():
 
     response = [
         {
-            'current_rank': index + 1 + offset,  # 순위 계산
+            'current_rank': index + 1 + offset,
             'rank': player.rank or '무',
             'name': player.name,
             'category_value': getattr(player, field, 0),
@@ -316,7 +319,7 @@ def update_ranks():
         </div>
         """
 
-        log = UpdateLog(title=str(datetime.now().date()), html_content=html_content)
+        log = UpdateLog(title=str(seoul_time.date()), html_content=html_content)
         db.session.add(log)
 
         for player in Player.query.all():
