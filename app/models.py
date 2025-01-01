@@ -13,9 +13,15 @@ class Player(db.Model):
     match_count = db.Column(db.Integer, default=0)
     win_count = db.Column(db.Integer, default=0)
     loss_count = db.Column(db.Integer, default=0)
-    win_rate = db.Column(db.Float, default=0.0)
+    rate_count = db.Column(db.Float, default=0.0)
     opponent_count = db.Column(db.Integer, default=0)
-    achievements = db.Column(db.Integer, default=0)
+    achieve_count = db.Column(db.Integer, default=0)
+    win_order = db.Column(db.Integer, default=None)
+    loss_order = db.Column(db.Integer, default=None)
+    match_order = db.Column(db.Integer, default=None)
+    rate_order = db.Column(db.Integer, default=None)
+    opponent_order = db.Column(db.Integer, default=None)
+    achieve_order = db.Column(db.Integer, default=None)
 
     def __repr__(self):
         return f"<Player {self.name}>"
