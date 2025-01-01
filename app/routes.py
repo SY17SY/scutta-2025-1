@@ -28,6 +28,14 @@ def assignment():
 def settings():
     return render_template('settings.html')
 
+@current_app.route('/player/<int:player_id>', methods=['GET'])
+def player_detail(player_id):
+    player = Player.query.get(player_id)
+    if not player:
+        return "선수를 찾을 수 없습니다.", 404
+
+    return render_template('player_detail.html', player=player)
+
 @current_app.route('/submit_match', methods=['POST'])
 def submit_match():
     data = request.get_json()
@@ -135,6 +143,7 @@ def rankings():
             category_value = getattr(player, attribute_name, 0)
 
         response.append({
+            'id': player.id,
             'current_rank': getattr(player, category),
             'rank': player.rank or '무',
             'name': player.name,
@@ -164,6 +173,7 @@ def search_players():
             category_value = getattr(player, attribute_name, 0)
 
         response.append({
+            'id': player.id,
             'current_rank': getattr(player, category),
             'rank': player.rank or '무',
             'name': player.name,
@@ -388,3 +398,26 @@ def get_log_detail(log_id):
         return jsonify({'error': '로그를 찾을 수 없습니다.'}), 404
 
     return jsonify({'title': log.title, 'html_content': log.html_content})
+
+@current_app.route('/update_achievement', methods=['POST'])
+def update_achievement():
+    data = request.get_json()
+    player_id = data.get('player_id')
+    additional_achievements = data.get('achievements')
+
+    if not player_id or additional_achievements is None:
+        return jsonify({'success': False, 'error': 'Invalid data provided'}), 400
+
+    player = Player.query.get(player_id)
+    if not player:
+        return jsonify({'success': False, 'error': 'Player not found'}), 404
+
+    player.achieve_count += additional_achievements
+    db.session.commit()
+
+    players = Player.query.order_by(Player.achieve_count.desc()).all()
+    for index, player in enumerate(players, start=1):
+        player.achieve_order = index
+    db.session.commit()
+
+    return jsonify({'success': True, 'new_achieve_count': player.achieve_count})
