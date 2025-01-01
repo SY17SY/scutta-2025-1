@@ -3,7 +3,7 @@ from flask import request, jsonify
 from app import db
 from sqlalchemy import desc
 from app.models import Match, Player, UpdateLog
-from datetime import datetime, timezone
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 seoul_time = datetime.now(ZoneInfo("Asia.Seoul"))
