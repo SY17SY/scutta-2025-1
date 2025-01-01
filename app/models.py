@@ -1,7 +1,9 @@
 from app import db
-from datetime import datetime, timezone
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
-# 선수 DB 모델
+seoul_time = datetime.now(ZoneInfo("Asia.Seoul"))
+
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
@@ -18,7 +20,6 @@ class Player(db.Model):
     def __repr__(self):
         return f"<Player {self.name}>"
 
-# 경기 DB 모델
 class Match(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     winner = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
@@ -26,7 +27,7 @@ class Match(db.Model):
     loser = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
     loser_name = db.Column(db.String(100), nullable=False)
     score = db.Column(db.String(10), nullable=False)
-    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    timestamp = db.Column(db.DateTime, default=seoul_time)
     approved = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
@@ -36,4 +37,4 @@ class UpdateLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     html_content = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    timestamp = db.Column(db.DateTime, default=seoul_time)
