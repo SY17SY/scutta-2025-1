@@ -55,7 +55,16 @@ function selectCategory(button, category) {
     document.querySelectorAll(".flex.mb-4 button").forEach((btn) => btn.classList.remove("selected"));
     button.classList.add("selected");
 
-    loadRankings(category, false);
+    currentCategory = category;
+
+    const searchInput = document.querySelector('input[oninput="searchByName(this.value)"]');
+    const query = searchInput ? searchInput.value.trim() : '';
+
+    if (query) {
+        searchByName(query);
+    } else {
+        loadRankings(category);
+    }
 }
 
 function updateTable(data, append) {
@@ -97,28 +106,43 @@ function loadMore() {
 }
 
 function searchByName(query) {
-    const tableBody = document.getElementById('table-body');
-    const filteredPlayers = allPlayers.filter(player =>
-        player.name.toLowerCase().includes(query.toLowerCase())
-    );
+    const tableBody = document.getElementById("table-body");
 
-    tableBody.innerHTML = '';
-
-    filteredPlayers.forEach(player => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td class="border border-gray-300 p-2">${player.current_rank}</td>
-            <td class="border border-gray-300 p-2">${player.rank || '무'}</td>
-            <td class="border border-gray-300 p-2">${player.name || ' '}</td>
-            <td class="border border-gray-300 p-2">${player.category_value || 0}</td>
-            <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
-        `;
-        tableBody.appendChild(row);
-    });
-
-    if (filteredPlayers.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="5">검색 결과가 없습니다.</td></tr>';
+    if (!query.trim()) {
+        loadRankings(currentCategory, false);
+        return;
     }
+
+    fetch(`/search_players?query=${encodeURIComponent(query)}&category=${currentCategory}`)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("검색 데이터를 불러오는 중 문제가 발생했습니다.");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            tableBody.innerHTML = '';
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5">검색 결과가 없습니다.</td></tr>';
+                return;
+            }
+
+            data.forEach((player) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td class="border border-gray-300 p-2">${player.current_rank}</td>
+                    <td class="border border-gray-300 p-2">${player.rank || "무"}</td>
+                    <td class="border border-gray-300 p-2">${player.name || " "}</td>
+                    <td class="border border-gray-300 p-2">${player.category_value}</td>
+                    <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            tableBody.innerHTML = '<tr><td colspan="5">검색 결과를 가져오지 못했습니다.</td></tr>';
+        });
 }
 
 let matchCounter = 1;
