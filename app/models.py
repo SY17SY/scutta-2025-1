@@ -2,7 +2,7 @@ from app import db
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-seoul_time = datetime.now(ZoneInfo("Asia.Seoul"))
+seoul_time = datetime.now(ZoneInfo("Asia/Seoul"))
 
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -6,7 +6,7 @@ from app.models import Match, Player, UpdateLog
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-seoul_time = datetime.now(ZoneInfo("Asia.Seoul"))
+seoul_time = datetime.now(ZoneInfo("Asia/Seoul"))
 
 @current_app.route('/')
 def index():
