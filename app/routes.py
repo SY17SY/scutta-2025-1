@@ -155,16 +155,21 @@ def search_players():
 
     players = Player.query.filter(Player.name.ilike(f"%{query}%")).order_by(getattr(Player, category)).all()
 
-    response = [
-        {
+    response = []
+    for player in players:
+        if category == 'match_order':
+            category_value = player.rate_count
+        else:
+            attribute_name = category.replace('_order', '_count')
+            category_value = getattr(player, attribute_name, 0)
+
+        response.append({
             'current_rank': getattr(player, category),
             'rank': player.rank or '무',
             'name': player.name,
-            'category_value': getattr(player, category.replace('_order', ''), 0),
+            'category_value': category_value or 0,
             'match_count': player.match_count or 0
-        }
-        for player in players
-    ]
+        })
 
     return jsonify(response)
 
