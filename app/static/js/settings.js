@@ -38,17 +38,45 @@ function loadPlayers() {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><input type="checkbox" class="row-checkbox" data-id="${player.id}"></td>
-                    <td>${player.name}</td>
-                    <td>${player.win_count}</td>
+                    <td>
+                        <a href="/player/${player.id}">${player.name}</a>
+                    </td>
                     <td>${player.rate_count}%</td>
                     <td>${player.match_count}</td>
                     <td>${player.achieve_count}</td>
+                    <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addAchievement(${player.id})">추가</button></td>
                 `;
                 tbody.appendChild(row);
             });
         })
         .catch(error => console.error('Error loading players:', error));
 }
+
+function addAchievement(playerId) {
+    const input = prompt('추가할 점수를 입력하세요:')
+    const additionalAchievements = parseInt(input, 10);
+
+    if (isNaN(additionalAchievements) || additionalAchievements <= 0) {
+        alert('올바른 숫자를 입력해주세요.');
+        return;
+    }
+
+    fetch('/update_achievement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player_id: playerId, achievements: additionalAchievements })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadPlayers();
+            } else {
+                alert(`오류 발생: ${data.error}`);
+            }
+        })
+        .catch(error => console.error('Error updating achievements:', error));
+}
+
 
 function deleteSelectedPlayers() {
     const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked'))
@@ -80,3 +108,4 @@ function toggleSelectAll(checkbox) {
     const checkboxes = document.querySelectorAll('.row-checkbox');
     checkboxes.forEach(cb => cb.checked = checkbox.checked);
 }
+

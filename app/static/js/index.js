@@ -81,13 +81,16 @@ function updateTable(data, append) {
         row.innerHTML = `
             <td class="border border-gray-300 p-2">${player.current_rank}</td>
             <td class="border border-gray-300 p-2">${player.rank || "무"}</td>
-            <td class="border border-gray-300 p-2">${player.name || " "}</td>
+            <td class="border border-gray-300 p-2">
+                <a href="/player/${player.id}">${player.name || " "}</a>
+            </td>
             <td class="border border-gray-300 p-2">${player.category_value}</td>
             <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
         `;
         tableBody.appendChild(row);
     });
 }
+
 
 function getCategoryDisplayName(category) {
     const categoryDisplayNames = {
@@ -132,7 +135,9 @@ function searchByName(query) {
                 row.innerHTML = `
                     <td class="border border-gray-300 p-2">${player.current_rank}</td>
                     <td class="border border-gray-300 p-2">${player.rank || "무"}</td>
-                    <td class="border border-gray-300 p-2">${player.name || " "}</td>
+                    <td class="border border-gray-300 p-2">
+                        <a href="/player/${player.id}">${player.name || " "}</a>
+                    </td>
                     <td class="border border-gray-300 p-2">${player.category_value}</td>
                     <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
                 `;
