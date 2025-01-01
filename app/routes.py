@@ -72,45 +72,23 @@ def submit_match():
     db.session.commit()
     return jsonify({"message": f"{len(data)}개의 경기 결과가 제출되었습니다!"}), 200
 
-@current_app.route('/rankings', methods=['GET'])
-def rankings():
-    category = request.args.get('category', 'wins')
-    offset = int(request.args.get('offset', 0))
-    limit = int(request.args.get('limit', 10))
-
-    category_mapping = {
-        'wins': 'win_count',
-        'losses': 'loss_count',
-        'winRate': 'win_rate',
-        'matches': 'match_count',
-        'opponents': 'opponent_count',
-        'achievements': 'achievements'
-    }
-
-    field = category_mapping.get(category)
-    if not field:
-        return jsonify([])
-
-    players = Player.query.order_by(
-        desc(getattr(Player, field)),
-        desc(Player.match_count)
-    ).offset(offset).limit(limit).all()
-    
-    if category == 'matches':
-        field = 'win_rate'
-
-    response = [
-        {
-            'current_rank': index + 1 + offset,
-            'rank': player.rank or '무',
-            'name': player.name,
-            'category_value': getattr(player, field, 0),
-            'match_count': player.match_count or 0
-        }
-        for index, player in enumerate(players)
+def update_player_orders():
+    """Update the ranking orders for all players in various categories."""
+    categories = [
+        ('win_order', Player.win_count.desc(), Player.match_count.desc()),
+        ('loss_order', Player.loss_count.desc(), Player.match_count.desc()),
+        ('match_order', Player.match_count.desc(), Player.win_count.desc()),
+        ('rate_order', Player.rate_count.desc(), Player.match_count.desc()),
+        ('opponent_order', Player.opponent_count.desc(), Player.win_count.desc()),
+        ('achieve_order', Player.achieve_count.desc(), Player.match_count.desc()),
     ]
 
-    return jsonify(response)
+    for order_field, primary_criteria, secondary_criteria in categories:
+        players = Player.query.order_by(primary_criteria, secondary_criteria).all()
+        for rank, player in enumerate(players, start=1):
+            setattr(player, order_field, rank)
+
+    db.session.commit()
 
 @current_app.route('/approve_matches', methods=['POST'])
 def approve_matches():
@@ -124,16 +102,71 @@ def approve_matches():
         if winner:
             winner.match_count += 1
             winner.win_count += 1
-            winner.win_rate = round((winner.win_count / winner.match_count) * 100, 2) if winner.match_count > 0 else 0
+            winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2)
             winner.opponent_count = calculate_opponent_count(winner.id)
         if loser:
             loser.match_count += 1
             loser.loss_count += 1
-            loser.win_rate = round((loser.win_count / loser.match_count) * 100, 2) if winner.match_count > 0 else 0
+            loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2)
             loser.opponent_count = calculate_opponent_count(loser.id)
-    
+
     db.session.commit()
+    update_player_orders()
     return jsonify({'success': True, 'message': '선택한 경기가 승인되었습니다.'})
+
+@current_app.route('/rankings', methods=['GET'])
+def rankings():
+    category = request.args.get('category', 'win_order')
+    offset = int(request.args.get('offset', 0))
+    limit = int(request.args.get('limit', 10))
+
+    valid_categories = ['win_order', 'loss_order', 'match_order', 'rate_order', 'opponent_order', 'achieve_order']
+    if category not in valid_categories:
+        return jsonify([])
+
+    players = Player.query.order_by(getattr(Player, category)).offset(offset).limit(limit).all()
+
+    response = []
+    for player in players:
+        if category == 'match_order':
+            category_value = player.rate_count
+        else:
+            attribute_name = category.replace('_order', '_count')
+            category_value = getattr(player, attribute_name, 0)
+
+        response.append({
+            'current_rank': getattr(player, category),
+            'rank': player.rank or '무',
+            'name': player.name,
+            'category_value': category_value or 0,
+            'match_count': player.match_count or 0
+        })
+
+    return jsonify(response)
+
+@current_app.route('/search_players', methods=['GET'])
+def search_players():
+    query = request.args.get('query', '').lower()
+    category = request.args.get('category', 'win_order')
+
+    valid_categories = ['win_order', 'loss_order', 'match_order', 'rate_order', 'opponent_order', 'achieve_order']
+    if category not in valid_categories:
+        return jsonify([])
+
+    players = Player.query.filter(Player.name.ilike(f"%{query}%")).order_by(getattr(Player, category)).all()
+
+    response = [
+        {
+            'current_rank': getattr(player, category),
+            'rank': player.rank or '무',
+            'name': player.name,
+            'category_value': getattr(player, category.replace('_order', ''), 0),
+            'match_count': player.match_count or 0
+        }
+        for player in players
+    ]
+
+    return jsonify(response)
 
 @current_app.route('/delete_matches', methods=['POST'])
 def delete_matches():
@@ -146,12 +179,12 @@ def delete_matches():
         if winner:
             winner.match_count -= 1
             winner.win_count -= 1
-            winner.win_rate = round((winner.win_count / winner.match_count) * 100, 2) if winner.match_count > 0 else 0
+            winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2) if winner.match_count > 0 else 0
             winner.opponent_count = calculate_opponent_count(winner.id)
         if loser:
             loser.match_count -= 1
             loser.loss_count -= 1
-            loser.win_rate = round((loser.win_count / loser.match_count) * 100, 2) if loser.match_count > 0 else 0
+            loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2) if loser.match_count > 0 else 0
             loser.opponent_count = calculate_opponent_count(loser.id)
 
     Match.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
@@ -175,7 +208,7 @@ def get_matches():
 
 def calculate_opponent_count(player_id):
     from sqlalchemy import or_
-    
+
     matches = Match.query.filter(
         or_(Match.winner == player_id, Match.loser == player_id),
         Match.approved == True
@@ -214,9 +247,9 @@ def get_players():
             'id': player.id,
             'name': player.name,
             'win_count': player.win_count,
-            'win_rate': player.win_rate,
+            'rate_count': player.rate_count,
             'match_count': player.match_count,
-            'achievements': player.achievements
+            'achieve_count': player.achieve_count
         })
     return jsonify(response)
 
@@ -247,7 +280,7 @@ def check_players():
 def update_ranks():
     try:
         players = Player.query.filter(Player.match_count >= 3).order_by(
-            Player.win_rate.desc(), Player.match_count.desc()
+            Player.rate_count.desc(), Player.match_count.desc()
         ).all()
 
         total_players = len(players)
@@ -260,7 +293,7 @@ def update_ranks():
             quotas.append(result)
     
         for player in players:
-            if player.win_rate == 100 and player.match_count < 7:
+            if player.rate_count == 100 and player.match_count < 7:
                 player.previous_rank = 5
                 quotas[4] -= 1
 
@@ -293,11 +326,11 @@ def update_ranks():
                 <td class="border border-gray-300 p-2">{p.name}</td>
                 <td class="border border-gray-300 p-2">{p.rank or '무'}</td>
                 <td class="border border-gray-300 p-2">{p.previous_rank or '무'}</td>
-                <td class="border border-gray-300 p-2">{p.win_rate:.2f}%</td>
+                <td class="border border-gray-300 p-2">{p.rate_count}%</td>
                 <td class="border border-gray-300 p-2">{p.rank_change or ''}</td>
             </tr>
             """
-            for p in Player.query.order_by(Player.win_rate.desc()).filter(Player.rank_change.isnot(None)).all()
+            for p in Player.query.order_by(Player.rate_count.desc()).filter(Player.rank_change.isnot(None)).all()
         ]
 
         html_content = f"""

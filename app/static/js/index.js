@@ -1,7 +1,7 @@
 let currentOffset = 0;
 const limit = 10;
 let allPlayers = [];
-let currentCategory = 'wins';
+let currentCategory = 'win_order';
 
 document.addEventListener('DOMContentLoaded', () => {
     loadRankings(currentCategory);
@@ -30,46 +30,66 @@ function loadRankings(category, append = false) {
     }
 
     fetch(`/rankings?category=${category}&offset=${currentOffset}&limit=${limit}`)
-        .then(response => {
+        .then((response) => {
             if (!response.ok) {
                 throw new Error('데이터를 불러오는 중 문제가 발생했습니다.');
             }
             return response.json();
         })
-        .then(data => {
-            const rankedData = data.map((player, index) => ({
-                ...player,
-                current_rank: index + 1 + currentOffset, // 순위 계산
-            }));
+        .then((data) => {
+            if (data.length === 0 && append) {
+                return;
+            }
 
-            allPlayers = append ? [...allPlayers, ...rankedData] : rankedData;
-
-            updateTable(rankedData, append);
-            currentOffset += limit;
+            allPlayers = append ? [...allPlayers, ...data] : data;
+            updateTable(data, append);
+            currentOffset += limit; // 다음 페이지를 위한 offset 증가
         })
-        .catch(error => {
+        .catch((error) => {
             console.error('Error:', error);
-            alert(error.message);
+            alert('데이터를 불러오는 데 실패했습니다.');
         });
 }
 
+function selectCategory(button, category) {
+    document.querySelectorAll(".flex.mb-4 button").forEach((btn) => btn.classList.remove("selected"));
+    button.classList.add("selected");
+
+    loadRankings(category, false);
+}
+
 function updateTable(data, append) {
-    const tableBody = document.getElementById('table-body');
+    const tableBody = document.getElementById("table-body");
+    const dynamicColumn = document.getElementById("dynamic-column");
+    dynamicColumn.textContent = getCategoryDisplayName(currentCategory);
+
     if (!append) {
         tableBody.innerHTML = '';
     }
 
-    data.forEach(player => {
-        const row = document.createElement('tr');
+    data.forEach((player) => {
+        const row = document.createElement("tr");
         row.innerHTML = `
             <td class="border border-gray-300 p-2">${player.current_rank}</td>
-            <td class="border border-gray-300 p-2">${player.rank || '무'}</td>
-            <td class="border border-gray-300 p-2">${player.name || ' '}</td>
-            <td class="border border-gray-300 p-2">${player.category_value || 0}</td>
+            <td class="border border-gray-300 p-2">${player.rank || "무"}</td>
+            <td class="border border-gray-300 p-2">${player.name || " "}</td>
+            <td class="border border-gray-300 p-2">${player.category_value}</td>
             <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
         `;
         tableBody.appendChild(row);
     });
+}
+
+function getCategoryDisplayName(category) {
+    const categoryDisplayNames = {
+        win_order: "승리",
+        loss_order: "패배",
+        rate_order: "승률",
+        match_order: "승률",
+        opponent_order: "상대",
+        achieve_order: "업적",
+    };
+    return categoryDisplayNames[category];
 }
 
 function loadMore() {
@@ -90,7 +110,7 @@ function searchByName(query) {
             <td class="border border-gray-300 p-2">${player.current_rank}</td>
             <td class="border border-gray-300 p-2">${player.rank || '무'}</td>
             <td class="border border-gray-300 p-2">${player.name || ' '}</td>
-            <td class="border border-gray-300 p-2">${player.category_value?.toFixed(2) || 0}</td>
+            <td class="border border-gray-300 p-2">${player.category_value || 0}</td>
             <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
         `;
         tableBody.appendChild(row);
@@ -99,24 +119,6 @@ function searchByName(query) {
     if (filteredPlayers.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="5">검색 결과가 없습니다.</td></tr>';
     }
-}
-
-function selectCategory(button, category) {
-    document.querySelectorAll('.flex.mb-4 button').forEach(btn => btn.classList.remove('selected'));
-    button.classList.add('selected');
-
-    const columnNames = {
-        wins: '승리',
-        losses: '패배',
-        winRate: '승률',
-        matches: '승률',
-        opponents: '상대',
-        achievements: '업적',
-    };
-    const dynamicColumn = document.getElementById('dynamic-column');
-    dynamicColumn.textContent = columnNames[category] || '정보';
-
-    loadRankings(category, false);
 }
 
 let matchCounter = 1;
@@ -164,7 +166,6 @@ function submitMatches() {
         return;
     }
 
-    // 서버에 선수 이름 확인 요청
     fetch('/check_players', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
