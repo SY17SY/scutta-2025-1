@@ -80,12 +80,35 @@ function selectMatches() {
 }
 
 function selectAllMatches() {
-    return Array.from(document.querySelectorAll('.row-checkbox'))
-        .filter(cb => !cb.closest('tr').querySelector('td:nth-child(4)').textContent.includes('승인 완료'))
-        .map(cb => cb.getAttribute('data-id'));
+    const selectedTab = document.querySelector('.tab.active').textContent.trim();
+
+    return Array.from(document.querySelectorAll('.row-checkbox')).filter(cb => {
+        const approvedCell = cb.closest('tr').querySelector('td:nth-child(4)').textContent;
+
+        if (selectedTab === '전체') {
+            return approvedCell === '미승인';
+        } else if (selectedTab === '승인 대기') {
+            return approvedCell === '미승인';
+        } else if (selectedTab === '승인 완료') {
+            return approvedCell === '승인';
+        }
+        return false;
+    }).map(cb => cb.getAttribute('data-id'));
 }
 
 function toggleSelectAll(checkbox) {
+    const selectedTab = document.querySelector('.tab.active').textContent.trim();
     const checkboxes = document.querySelectorAll('.row-checkbox');
-    checkboxes.forEach(cb => cb.checked = checkbox.checked);
+
+    checkboxes.forEach(cb => {
+        const approvedCell = cb.closest('tr').querySelector('td:nth-child(4)').textContent;
+
+        if (selectedTab === '전체' && approvedCell === '미승인') {
+            cb.checked = checkbox.checked;
+        } else if (selectedTab === '승인 대기' && approvedCell === '미승인') {
+            cb.checked = checkbox.checked;
+        } else if (selectedTab === '승인 완료' && approvedCell === '승인') {
+            cb.checked = checkbox.checked;
+        }
+    });
 }
