@@ -2,7 +2,7 @@ from flask import render_template, current_app
 from flask import request, jsonify
 from app import db
 from sqlalchemy import desc
-from app.models import Match, Player, UpdateLog
+from app.models import Match, Player, UpdateLog, League
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -11,6 +11,10 @@ seoul_time = datetime.now(ZoneInfo("Asia/Seoul"))
 @current_app.route('/')
 def index():
     return render_template('index.html')
+
+@current_app.route('/league.html')
+def league():
+    return render_template('league.html')
 
 @current_app.route('/password.html')
 def password():
@@ -421,3 +425,111 @@ def update_achievement():
     db.session.commit()
 
     return jsonify({'success': True, 'new_achieve_count': player.achieve_count})
+
+@current_app.route('/create_league', methods=['POST'])
+def create_league():
+    data = request.get_json()
+    if not data or 'players' not in data:
+        return jsonify({'error': '올바른 데이터를 제공해주세요.'}), 400
+
+    players = data.get('players', [])
+    if len(players) != 5:
+        return jsonify({'error': '정확히 5명의 선수를 입력해야 합니다.'}), 400
+
+    player_ids = []
+    for name in players:
+        player = Player.query.filter_by(name=name).first()
+        if not player:
+            return jsonify({'success': False, 'error': f'선수 "{name}"를 찾을 수 없습니다.'}), 400
+        player_ids.append(player.id)
+
+    new_league = League(
+        title=' '.join(players),
+        p1=player_ids[0],
+        p2=player_ids[1],
+        p3=player_ids[2],
+        p4=player_ids[3],
+        p5=player_ids[4]
+    )
+    db.session.add(new_league)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': '리그전이 생성되었습니다.', 'league_id': new_league.id})
+
+@current_app.route('/get_leagues', methods=['GET'])
+def get_leagues():
+    leagues = League.query.order_by(League.id.desc()).all()
+    response = []
+    for league in leagues:
+        response.append({
+            'id': league.id,
+            'title': league.title
+        })
+    
+    return jsonify(response)
+
+@current_app.route('/league/<int:league_id>', methods=['GET'])
+def view_league(league_id):
+    league = League.query.get_or_404(league_id)
+    player_ids = [league.p1, league.p2, league.p3, league.p4, league.p5]
+    players = Player.query.filter(Player.id.in_(player_ids)).all()
+
+    indexed_players = [{'index': idx, 'player': player} for idx, player in enumerate(players)]
+
+    return render_template('league_detail.html', league=league, players=indexed_players)
+
+@current_app.route('/league/<int:league_id>/detail', methods=['GET'])
+def league_detail(league_id):
+    league = League.query.get_or_404(league_id)
+    scores = {}
+
+    for row in range(5):
+        for col in range(5):
+            if row != col:
+                key = f"p{row + 1}p{col + 1}"
+                scores[key] = getattr(league, key, None)
+
+    return jsonify({'scores': scores})
+
+@current_app.route('/save_league/<int:league_id>', methods=['POST'])
+def save_league(league_id):
+    data = request.get_json()
+    league = League.query.get_or_404(league_id)
+
+    for key, value in data.items():
+        if hasattr(league, key):
+            setattr(league, key, value)
+
+    db.session.commit()
+    return jsonify({'success': True})
+
+@current_app.route('/submit_league/<int:league_id>', methods=['POST'])
+def submit_league(league_id):
+    data = request.get_json()
+    league = League.query.get_or_404(league_id)
+
+    matches = []
+    player_ids = [league.p1, league.p2, league.p3, league.p4, league.p5]
+
+    for key, value in data.items():
+        p1, p2 = map(int, key.split('-'))
+        score1 = data.get(f"{p1}-{p2}", 0)
+        score2 = data.get(f"{p2}-{p1}", 0)
+
+        if score1 is None or score2 is None:
+            return jsonify({'success': False, 'error': '모든 값을 입력하세요.'})
+
+        if score1 + score2 != 3:
+            return jsonify({'success': False, 'error': '짝지어진 값의 합이 3이 되어야 합니다.'})
+
+        winner = player_ids[p1] if score1 > score2 else player_ids[p2]
+        loser = player_ids[p2] if score1 > score2 else player_ids[p1]
+        set_score = f"{score1}:{score2}" if score1 > score2 else f"{score2}:{score1}"
+
+        matches.append(Match(winner=winner, loser=loser, set_score=set_score, approved=False))
+
+    db.session.bulk_save_objects(matches)
+    db.session.delete(league)
+    db.session.commit()
+
+    return jsonify({'success': True})
