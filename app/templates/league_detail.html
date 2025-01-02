@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리그전 상세</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <style>
+        .container {
+            margin-top: 80px;
+        }
+        table {
+            min-width: 600px;
+        }
+        th, td {
+            width: 100px;
+            max-width: 100px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .overflow-x-auto {
+            overflow-x: auto;
+        }
+        .league-input {
+            width: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header class="flex justify-between items-center p-4 bg-white shadow">
+        <button onclick="history.back()" class="text-xl">&larr;</button>
+        <h1 class="text-lg font-bold">{{ league.title }}</h1>
+        <div class="text-sm">2025-1</div>
+    </header>
+
+    <div class="container mx-auto p-4">
+        <div class="overflow-x-auto">
+            <table class="table-auto w-full mb-4 border-collapse border" style="table-layout: fixed;">
+                <thead>
+                    <tr>
+                        <th class="border px-4 py-2 w-24 text-center"></th>
+                        {% for row_data in players %}
+                            <th class="border px-4 py-2 w-24 text-center">{{ row_data.player.name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row_data in players %}
+                    <tr>
+                        <td class="border font-bold px-4 py-2 text-center w-24">{{ row_data.player.name }}</td>
+                        {% for col_data in players %}
+                            {% if row_data.index == col_data.index %}
+                                <td class="border px-4 py-2 text-center w-24">X</td>
+                            {% else %}
+                                <td class="border px-4 py-2 text-center w-24">
+                                    <input class="league-input w-12 text-center"
+                                           data-row="{{ row_data.index }}" 
+                                           data-col="{{ col_data.index }}" 
+                                           value="{{ league[row_data.index ~ col_data.index] or '' }}"
+                                           inputmode="numeric">
+                                </td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>            
+            </table>
+        </div>
+        <button onclick="saveLeague({{ league.id }})" class="bg-gray-400 text-white px-4 py-2 rounded">저장</button>
+        <button onclick="submitLeague({{ league.id }})" class="bg-main text-white px-4 py-2 rounded">제출</button>
+    </div>
+    <script src="../static/js/script.js"></script>
+    <script src="../static/js/league_detail.js"></script>
+</body>
+</html>

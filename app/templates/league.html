@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리그전</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <style>
+        .container {
+            margin-top: 80px;
+        }
+    </style>
+</head>
+<body>
+    <header class="flex justify-between items-center p-4 bg-white shadow">
+        <button onclick="navigateTo('/')" class="text-xl">&larr;</button>
+        <h1 class="text-xl font-bold">리그전</h1>
+        <div class="text-sm">2025-1</div>
+    </header>
+    <div class="container mx-auto p-4">
+        <button class="bg-main text-white px-4 py-2 rounded mb-4" onclick="createLeague()">새 리그전</button>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>목록</th>
+                </tr>
+            </thead>
+            <tbody id="league-list">
+            </tbody>
+        </table>
+    </div>
+
+    <script src="../static/js/script.js"></script>
+    <script src="../static/js/league.js"></script>
+</body>
+</html>
