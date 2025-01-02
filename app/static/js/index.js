@@ -57,6 +57,11 @@ function selectCategory(button, category) {
 
     currentCategory = category;
 
+    const dynamicColumn = document.getElementById("dynamic-column");
+    if (dynamicColumn) {
+        dynamicColumn.textContent = getCategoryDisplayName(category);
+    }
+
     const searchInput = document.querySelector('input[oninput="searchByName(this.value)"]');
     const query = searchInput ? searchInput.value.trim() : '';
 
@@ -90,7 +95,6 @@ function updateTable(data, append) {
         tableBody.appendChild(row);
     });
 }
-
 
 function getCategoryDisplayName(category) {
     const categoryDisplayNames = {
