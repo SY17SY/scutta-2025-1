@@ -234,6 +234,7 @@ function submitMatches() {
                         </div>
                     `;
                     matchCounter = 1;
+                    location.reload();
                 }
             })
             .catch(error => console.error('Error:', error));
