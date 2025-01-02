@@ -192,21 +192,24 @@ def delete_matches():
     matches = Match.query.filter(Match.id.in_(ids), Match.approved == True).all()
 
     for match in matches:
-        winner = Player.query.get(match.winner)
-        loser = Player.query.get(match.loser)
-        if winner:
-            winner.match_count -= 1
-            winner.win_count -= 1
-            winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2) if winner.match_count > 0 else 0
-            winner.opponent_count = calculate_opponent_count(winner.id)
-        if loser:
-            loser.match_count -= 1
-            loser.loss_count -= 1
-            loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2) if loser.match_count > 0 else 0
-            loser.opponent_count = calculate_opponent_count(loser.id)
-
+        if match.approved:
+            winner = Player.query.get(match.winner)
+            loser = Player.query.get(match.loser)
+            if winner:
+                winner.match_count -= 1
+                winner.win_count -= 1
+                winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2) if winner.match_count > 0 else 0
+                winner.opponent_count = calculate_opponent_count(winner.id)
+            if loser:
+                loser.match_count -= 1
+                loser.loss_count -= 1
+                loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2) if loser.match_count > 0 else 0
+                loser.opponent_count = calculate_opponent_count(loser.id)
+    
     Match.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
     db.session.commit()
+    update_player_orders()
+    
     return jsonify({'success': True, 'message': '선택한 경기가 삭제되었습니다.'})
 
 @current_app.route('/get_matches', methods=['GET'])
