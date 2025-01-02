@@ -79,7 +79,7 @@ function updateTable(data, append) {
     data.forEach((player) => {
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td class="border border-gray-300 p-2">${player.current_rank}</td>
+            <td class="border border-gray-300 p-2">${player.current_rank || ""}</td>
             <td class="border border-gray-300 p-2">${player.rank || "무"}</td>
             <td class="border border-gray-300 p-2">
                 <a href="/player/${player.id}">${player.name || " "}</a>
@@ -133,7 +133,7 @@ function searchByName(query) {
             data.forEach((player) => {
                 const row = document.createElement("tr");
                 row.innerHTML = `
-                    <td class="border border-gray-300 p-2">${player.current_rank}</td>
+                    <td class="border border-gray-300 p-2">${player.current_rank || ""}</td>
                     <td class="border border-gray-300 p-2">${player.rank || "무"}</td>
                     <td class="border border-gray-300 p-2">
                         <a href="/player/${player.id}">${player.name || " "}</a>

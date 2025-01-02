@@ -48,8 +48,8 @@ function loadLeagueDetail(leagueId) {
 
 function saveLeague(leagueId) {
     const inputs = document.querySelectorAll('.league-input');
-
     const scores = {};
+
     inputs.forEach(input => {
         const row = parseInt(input.getAttribute('data-row'), 10);
         const col = parseInt(input.getAttribute('data-col'), 10);
@@ -78,7 +78,7 @@ function saveLeague(leagueId) {
     fetch(`/save_league/${leagueId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(scores),
+        body: JSON.stringify({ scores }),
     })
         .then(response => response.json())
         .then(data => {
@@ -93,40 +93,69 @@ function saveLeague(leagueId) {
 }
 
 function submitLeague(leagueId) {
-    const inputs = document.querySelectorAll('input[type="number"]');
+    const inputs = document.querySelectorAll('.league-input');
     const scores = {};
-    let isComplete = true;
+    let playerNames = [];
 
-    inputs.forEach(input => {
-        const row = input.getAttribute('data-row');
-        const col = input.getAttribute('data-col');
-        const value = parseInt(input.value);
-
-        if (value === null || value === '') {
-            isComplete = false;
-        }
-
-        scores[`${row}-${col}`] = value || 0;
+    document.querySelectorAll('.player-name').forEach((element, index) => {
+        playerNames[index] = element.textContent.trim();
     });
 
-    if (!isComplete) {
-        alert('모든 입력값을 채워주세요.');
-        return;
+    inputs.forEach(input => {
+        const row = parseInt(input.getAttribute('data-row'), 10);
+        const col = parseInt(input.getAttribute('data-col'), 10);
+        const key = `p${row + 1}p${col + 1}`;
+        const value = input.value.trim();
+
+        scores[key] = value === '' ? null : parseInt(value, 10);
+    });
+
+    const matches = [];
+    for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 4 - i; j++) {
+            const key1 = `p${i + 1}p${i + j + 2}`;
+            const key2 = `p${i + j + 2}p${i + 1}`;
+
+            let value1 = scores[key1];
+            let value2 = scores[key2];
+
+            if (value1 === null && value2 !== null) {
+                value1 = 3 - value2;
+            } else if (value1 !== null && value2 === null) {
+                value2 = 3 - value1;
+            } else if (value1 === null && value2 === null) {
+                continue
+            }
+
+            const winner = value1 > value2 ? playerNames[i] : playerNames[j + i + 1];
+            const loser = value1 > value2 ? playerNames[j + i + 1] : playerNames[i];
+            const setScore = value1 > value2 ? `${value1}:${value2}` : `${value2}:${value1}`;
+
+            matches.push({ winner: winner, loser: loser, score: setScore });
+        }
     }
 
-    fetch(`/submit_league/${leagueId}`, {
+    fetch('/submit_match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(scores)
+        body: JSON.stringify(matches),
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('리그전이 제출되었습니다.');
-            window.location.href = '/league.html';
-        } else {
-            alert('제출 실패: ' + (data.error || '알 수 없는 오류'));
-        }
-    })
-    .catch(error => console.error('Error submitting league:', error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                alert(data.message);
+                fetch(`/delete_league/${leagueId}`, { method: 'DELETE' })
+                .then(deleteResponse => {
+                    if (deleteResponse.ok) {
+                        window.location.href = '/league.html';
+                    } else {
+                        alert('리그 데이터를 삭제하지 못했습니다.');
+                    }
+                })
+                .catch(error => console.error('Error deleting league:', error));
+            } else {
+                alert('제출 실패: ' + (data.error || '알 수 없는 오류'));
+            }
+        })
+        .catch(error => console.error('Error submitting league:', error));
 }

@@ -12,7 +12,7 @@ function loadLeagues() {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>
-                        <a href="/league/${league.id}">${league.title}</a>
+                        <a href="/league/${league.id}">${league.p1} ${league.p2} ${league.p3} ${league.p4} ${league.p5}</a>
                     </td>
                 `;
                 tbody.appendChild(row);

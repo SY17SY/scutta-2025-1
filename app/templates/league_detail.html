@@ -31,7 +31,7 @@
 <body>
     <header class="flex justify-between items-center p-4 bg-white shadow">
         <button onclick="history.back()" class="text-xl">&larr;</button>
-        <h1 class="text-lg font-bold">{{ league.title }}</h1>
+        <h1 class="text-lg font-bold">{{ league.p1 }} {{ league.p2 }} {{ league.p3 }} {{ league.p4 }} {{ league.p5 }}</h1>
         <div class="text-sm">2025-1</div>
     </header>
 
@@ -42,14 +42,14 @@
                     <tr>
                         <th class="border px-4 py-2 w-24 text-center"></th>
                         {% for row_data in players %}
-                            <th class="border px-4 py-2 w-24 text-center">{{ row_data.player.name }}</th>
+                            <th class="player-name border px-4 py-2 w-24 text-center">{{ row_data.player }}</th>
                         {% endfor %}
                     </tr>
                 </thead>
                 <tbody>
                     {% for row_data in players %}
                     <tr>
-                        <td class="border font-bold px-4 py-2 text-center w-24">{{ row_data.player.name }}</td>
+                        <td class="border font-bold px-4 py-2 text-center w-24">{{ row_data.player }}</td>
                         {% for col_data in players %}
                             {% if row_data.index == col_data.index %}
                                 <td class="border px-4 py-2 text-center w-24">X</td>

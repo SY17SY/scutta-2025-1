@@ -85,7 +85,6 @@ def submit_match():
     return jsonify({"message": f"{len(data)}개의 경기 결과가 제출되었습니다!"}), 200
 
 def update_player_orders():
-    """Update the ranking orders for all players in various categories."""
     categories = [
         ('win_order', Player.win_count.desc(), Player.match_count.desc()),
         ('loss_order', Player.loss_count.desc(), Player.match_count.desc()),
@@ -436,20 +435,17 @@ def create_league():
     if len(players) != 5:
         return jsonify({'error': '정확히 5명의 선수를 입력해야 합니다.'}), 400
 
-    player_ids = []
     for name in players:
         player = Player.query.filter_by(name=name).first()
         if not player:
             return jsonify({'success': False, 'error': f'선수 "{name}"를 찾을 수 없습니다.'}), 400
-        player_ids.append(player.id)
 
     new_league = League(
-        title=' '.join(players),
-        p1=player_ids[0],
-        p2=player_ids[1],
-        p3=player_ids[2],
-        p4=player_ids[3],
-        p5=player_ids[4]
+        p1=players[0],
+        p2=players[1],
+        p3=players[2],
+        p4=players[3],
+        p5=players[4]
     )
     db.session.add(new_league)
     db.session.commit()
@@ -463,7 +459,11 @@ def get_leagues():
     for league in leagues:
         response.append({
             'id': league.id,
-            'title': league.title
+            'p1': league.p1,
+            'p2': league.p2,
+            'p3': league.p3,
+            'p4': league.p4,
+            'p5': league.p5
         })
     
     return jsonify(response)
@@ -471,8 +471,7 @@ def get_leagues():
 @current_app.route('/league/<int:league_id>', methods=['GET'])
 def view_league(league_id):
     league = League.query.get_or_404(league_id)
-    player_ids = [league.p1, league.p2, league.p3, league.p4, league.p5]
-    players = Player.query.filter(Player.id.in_(player_ids)).all()
+    players = [league.p1, league.p2, league.p3, league.p4, league.p5]
 
     indexed_players = [{'index': idx, 'player': player} for idx, player in enumerate(players)]
 
@@ -496,40 +495,25 @@ def save_league(league_id):
     data = request.get_json()
     league = League.query.get_or_404(league_id)
 
-    for key, value in data.items():
+    scores = data.get('scores', {})
+    for key, value in scores.items():
         if hasattr(league, key):
             setattr(league, key, value)
 
     db.session.commit()
     return jsonify({'success': True})
 
-@current_app.route('/submit_league/<int:league_id>', methods=['POST'])
-def submit_league(league_id):
-    data = request.get_json()
-    league = League.query.get_or_404(league_id)
+@current_app.route('/delete_league/<int:league_id>', methods=['DELETE'])
+def delete_league(league_id):
+    league = League.query.get(league_id)
 
-    matches = []
-    player_ids = [league.p1, league.p2, league.p3, league.p4, league.p5]
+    if not league:
+        return jsonify({'success': False, 'error': '리그를 찾을 수 없습니다.'}), 404
 
-    for key, value in data.items():
-        p1, p2 = map(int, key.split('-'))
-        score1 = data.get(f"{p1}-{p2}", 0)
-        score2 = data.get(f"{p2}-{p1}", 0)
-
-        if score1 is None or score2 is None:
-            return jsonify({'success': False, 'error': '모든 값을 입력하세요.'})
-
-        if score1 + score2 != 3:
-            return jsonify({'success': False, 'error': '짝지어진 값의 합이 3이 되어야 합니다.'})
-
-        winner = player_ids[p1] if score1 > score2 else player_ids[p2]
-        loser = player_ids[p2] if score1 > score2 else player_ids[p1]
-        set_score = f"{score1}:{score2}" if score1 > score2 else f"{score2}:{score1}"
-
-        matches.append(Match(winner=winner, loser=loser, set_score=set_score, approved=False))
-
-    db.session.bulk_save_objects(matches)
-    db.session.delete(league)
-    db.session.commit()
-
-    return jsonify({'success': True})
+    try:
+        db.session.delete(league)
+        db.session.commit()
+        return jsonify({'success': True, 'message': '리그가 성공적으로 삭제되었습니다.'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': f'리그 삭제 중 오류 발생: {str(e)}'}), 500

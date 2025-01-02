@@ -44,15 +44,14 @@ class UpdateLog(db.Model):
     title = db.Column(db.String(100), nullable=False)
     html_content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=seoul_time)
-    
+
 class League(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(255), nullable=False)
-    p1 = db.Column(db.Integer, db.ForeignKey('player.id'))
-    p2 = db.Column(db.Integer, db.ForeignKey('player.id'))
-    p3 = db.Column(db.Integer, db.ForeignKey('player.id'))
-    p4 = db.Column(db.Integer, db.ForeignKey('player.id'))
-    p5 = db.Column(db.Integer, db.ForeignKey('player.id'))
+    p1 = db.Column(db.String(100), nullable=False)
+    p2 = db.Column(db.String(100), nullable=False)
+    p3 = db.Column(db.String(100), nullable=False)
+    p4 = db.Column(db.String(100), nullable=False)
+    p5 = db.Column(db.String(100), nullable=False)
     p1p2 = db.Column(db.Integer, default=None)
     p1p3 = db.Column(db.Integer, default=None)
     p1p4 = db.Column(db.Integer, default=None)
