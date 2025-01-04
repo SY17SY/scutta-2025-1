@@ -1,7 +1,7 @@
 from flask import render_template, current_app
 from flask import request, jsonify
 from app import db
-from sqlalchemy import desc
+from sqlalchemy import desc, and_
 from app.models import Match, Player, UpdateLog, League
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -230,6 +230,39 @@ def get_matches():
         for match in matches
     ]
     return jsonify(response)
+
+@current_app.route('/get_matches_by_date', methods=['GET'])
+def get_matches_by_date():
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    try:
+        start_date = datetime.strptime(start_date, "%Y-%m-%d")
+        end_date = datetime.strptime(end_date, "%Y-%m-%d")
+        
+        end_date = end_date.replace(hour=23, minute=59, second=59)
+
+        matches = Match.query.filter(
+            and_(
+                Match.timestamp >= start_date,
+                Match.timestamp <= end_date
+            )
+        ).order_by(Match.timestamp.desc()).all()
+
+        response = [
+            {
+                'id': match.id,
+                'winner_name': match.winner_name,
+                'loser_name': match.loser_name,
+                'score': match.score,
+                'approved': match.approved
+            }
+            for match in matches
+        ]
+        return jsonify(response)
+
+    except ValueError:
+        return jsonify({'error': 'Invalid date format'}), 400
 
 def calculate_opponent_count(player_id):
     from sqlalchemy import or_

@@ -46,6 +46,41 @@ function filterMatches(status) {
     });
 }
 
+function searchByDateRange() {
+    const startDate = document.getElementById('start-date').value;
+    const endDate = document.getElementById('end-date').value;
+
+    if (!startDate && !endDate) {
+        loadMatches();
+        return;
+    }
+
+    if (!startDate || !endDate) {
+        alert('시작 날짜와 끝 날짜를 모두 선택해주세요.');
+        return;
+    }
+
+    fetch(`/get_matches_by_date?start_date=${startDate}&end_date=${endDate}`)
+        .then(response => response.json())
+        .then(data => {
+            const sortedData = data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const tbody = document.getElementById('match-table-body');
+            tbody.innerHTML = '';
+            sortedData.forEach(match => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${match.winner_name}</td>
+                    <td>${match.score}</td>
+                    <td>${match.loser_name}</td>
+                    <td>${match.approved ? '승인' : '미승인'}</td>
+                    <td><input type="checkbox" class="row-checkbox" data-id="${match.id}"></td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => console.error('Error fetching matches by date range:', error));
+}
+
 function approveMatches(ids) {
     fetch('/approve_matches', {
         method: 'POST',

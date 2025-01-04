@@ -41,6 +41,19 @@
             </div>
         </div>
 
+        <div class="date-range-search my-4 flex flex-col space-y-2">
+            <div>
+                <label for="start-date" class="mr-2">시작:</label>
+                <input type="date" id="start-date" class="border rounded px-2 py-1">
+            </div>
+            <div>
+                <label for="end-date" class="mr-2">종료:</label>
+                <input type="date" id="end-date" class="border rounded px-2 py-1">
+            </div>
+            <div>
+                <button class="bg-main text-white px-4 py-2 rounded" onclick="searchByDateRange()">기간 검색</button>
+            </div>
+        </div>
 
         <!-- Table -->
         <table class="table">
