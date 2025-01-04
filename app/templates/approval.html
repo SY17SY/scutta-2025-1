@@ -6,6 +6,7 @@
     <title>경기 승인</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="../static/css/style.css">
 </head>
 <body class="bg-gray-100">
@@ -41,17 +42,17 @@
             </div>
         </div>
 
-        <div class="date-range-search my-4 flex flex-col space-y-2">
-            <div>
-                <label for="start-date" class="mr-2">시작:</label>
-                <input type="date" id="start-date" class="border rounded px-2 py-1">
-            </div>
-            <div>
-                <label for="end-date" class="mr-2">종료:</label>
-                <input type="date" id="end-date" class="border rounded px-2 py-1">
-            </div>
-            <div>
-                <button class="bg-main text-white px-4 py-2 rounded" onclick="searchByDateRange()">기간 검색</button>
+        <!-- Period Search Button -->
+        <button id="open-calendar" class="bg-main text-white px-4 py-2 rounded">기간 검색</button>
+
+        <!-- Calendar Modal -->
+        <div id="calendar-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
+            <div class="bg-white p-6 rounded shadow-lg">
+                <h2 class="text-xl mb-4">기간 검색</h2>
+                <input id="calendar" class="border rounded px-2 py-1 mb-4 w-full" />
+                <button id="search-dates" class="bg-main text-white px-4 py-2 rounded">검색</button>
+                <button id="clear-dates" class="bg-gray-300 text-black px-4 py-2 rounded">날짜 초기화</button>
+                <button id="close-calendar" class="ml-4 bg-red-500 text-white px-4 py-2 rounded">닫기</button>
             </div>
         </div>
 
@@ -71,6 +72,7 @@
         </table>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="../static/js/script.js"></script>
     <script src="../static/js/approval.js"></script>
 </body>

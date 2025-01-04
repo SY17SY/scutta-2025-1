@@ -46,39 +46,100 @@ function filterMatches(status) {
     });
 }
 
-function searchByDateRange() {
-    const startDate = document.getElementById('start-date').value;
-    const endDate = document.getElementById('end-date').value;
+document.addEventListener('DOMContentLoaded', () => {
+    const calendarModal = document.getElementById('calendar-modal');
+    const openCalendarButton = document.getElementById('open-calendar');
+    const closeCalendarButton = document.getElementById('close-calendar');
+    const searchDatesButton = document.getElementById('search-dates');
+    const clearDatesButton = document.getElementById('clear-dates');
+    const calendarElement = document.getElementById('calendar');
 
-    if (!startDate && !endDate) {
-        loadMatches();
-        return;
+
+    let selectedDates = [];
+
+    if (calendarElement) {
+        const calendar = flatpickr(calendarElement, {
+            mode: "range",
+            dateFormat: "Y-m-d",
+            onChange: (dates) => {
+                selectedDates = dates.map(date => flatpickr.formatDate(date, "Y-m-d"));
+            }
+        });
+
+        clearDatesButton.addEventListener('click', () => {
+            calendar.clear(); // Clear selected dates
+            selectedDates = []; // Reset selectedDates array
+        });
+    } else {
+        console.error('Calendar element not found!');
     }
 
-    if (!startDate || !endDate) {
-        alert('시작 날짜와 끝 날짜를 모두 선택해주세요.');
-        return;
-    }
+    openCalendarButton.addEventListener('click', () => {
+        calendarModal.classList.remove('hidden');
+    });
 
-    fetch(`/get_matches_by_date?start_date=${startDate}&end_date=${endDate}`)
-        .then(response => response.json())
-        .then(data => {
-            const sortedData = data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            const tbody = document.getElementById('match-table-body');
-            tbody.innerHTML = '';
-            sortedData.forEach(match => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${match.winner_name}</td>
-                    <td>${match.score}</td>
-                    <td>${match.loser_name}</td>
-                    <td>${match.approved ? '승인' : '미승인'}</td>
-                    <td><input type="checkbox" class="row-checkbox" data-id="${match.id}"></td>
-                `;
-                tbody.appendChild(row);
-            });
-        })
-        .catch(error => console.error('Error fetching matches by date range:', error));
+    closeCalendarButton.addEventListener('click', () => {
+        calendarModal.classList.add('hidden');
+    });
+
+    searchDatesButton.addEventListener('click', () => {
+        calendarModal.classList.add('hidden');
+
+        if (selectedDates.length === 0) {
+            loadMatches();
+        } else if (selectedDates.length === 1) {
+            fetch(`/get_matches_by_date?start_date=${selectedDates[0]}&end_date=${selectedDates[0]}`)
+                .then(response => response.json())
+                .then(updateMatchTable)
+                .catch(error => console.error('Error fetching matches:', error));
+        } else if (selectedDates.length === 2) {
+            fetch(`/get_matches_by_date?start_date=${selectedDates[0]}&end_date=${selectedDates[1]}`)
+                .then(response => response.json())
+                .then(updateMatchTable)
+                .catch(error => console.error('Error fetching matches:', error));
+        } else {
+            alert('날짜를 선택해주세요.');
+        }
+    });
+
+    function updateMatchTable(data) {
+        const tbody = document.getElementById('match-table-body');
+        tbody.innerHTML = '';
+        data.forEach(match => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${match.winner_name}</td>
+                <td>${match.score}</td>
+                <td>${match.loser_name}</td>
+                <td>${match.approved ? '승인' : '미승인'}</td>
+                <td><input type="checkbox" class="row-checkbox" data-id="${match.id}"></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    function loadMatches() {
+        fetch('/get_matches')
+            .then(response => response.json())
+            .then(updateMatchTable)
+            .catch(error => console.error('Error loading matches:', error));
+    }
+});
+
+function updateMatchTable(data) {
+    const tbody = document.getElementById('match-table-body');
+    tbody.innerHTML = '';
+    data.forEach(match => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${match.winner_name}</td>
+            <td>${match.score}</td>
+            <td>${match.loser_name}</td>
+            <td>${match.approved ? '승인' : '미승인'}</td>
+            <td><input type="checkbox" class="row-checkbox" data-id="${match.id}"></td>
+        `;
+        tbody.appendChild(row);
+    });
 }
 
 function approveMatches(ids) {
