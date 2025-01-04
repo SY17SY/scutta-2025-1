@@ -8,10 +8,6 @@ from zoneinfo import ZoneInfo
 
 seoul_time = datetime.now(ZoneInfo("Asia/Seoul"))
 
-@current_app.route('/health', methods=['GET'])
-def health_check():
-    return jsonify(status="OK"), 200
-
 @current_app.route('/')
 def index():
     return render_template('index.html')
