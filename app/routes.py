@@ -431,7 +431,7 @@ def update_ranks():
 
         current_time = datetime.now(ZoneInfo("Asia/Seoul"))
         
-        log = UpdateLog(title=str(current_time.date()), html_content=html_content)
+        log = UpdateLog(title=str(current_time.date()), html_content=html_content, timestamp=current_time)
         db.session.add(log)
 
         for player in Player.query.filter(Player.rank_change.isnot(None)).all():
@@ -530,7 +530,7 @@ def revert_log():
         
         current_time = datetime.now(ZoneInfo("Asia/Seoul"))
         
-        new_log = UpdateLog(title=f"복원 - {current_time.date()}", html_content=html_content)
+        new_log = UpdateLog(title=f"복원 - {current_time.date()}", html_content=html_content, timestamp=current_time)
         db.session.add(new_log)
         
         for player in Player.query.filter(Player.name.in_(rank_map.keys())).all():
