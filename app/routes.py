@@ -100,8 +100,17 @@ def update_player_orders():
 
     for order_field, primary_criteria, secondary_criteria in categories:
         players = Player.query.order_by(primary_criteria, secondary_criteria).all()
-        for rank, player in enumerate(players, start=1):
-            setattr(player, order_field, rank)
+        
+        current_rank = 0
+        previous_primary_value = None
+
+        for i, player in enumerate(players, start=1):
+            primary_value = getattr(player, primary_criteria.key)
+            if primary_value != previous_primary_value:
+                current_rank = i
+                previous_primary_value = primary_value
+            
+            setattr(player, order_field, current_rank)
 
     db.session.commit()
 
