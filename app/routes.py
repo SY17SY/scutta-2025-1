@@ -90,16 +90,16 @@ def submit_match():
 
 def update_player_orders():
     categories = [
-        ('win_order', Player.win_count.desc(), Player.match_count.desc()),
-        ('loss_order', Player.loss_count.desc(), Player.match_count.desc()),
-        ('match_order', Player.match_count.desc(), Player.win_count.desc()),
-        ('rate_order', Player.rate_count.desc(), Player.match_count.desc()),
-        ('opponent_order', Player.opponent_count.desc(), Player.win_count.desc()),
-        ('achieve_order', Player.achieve_count.desc(), Player.match_count.desc()),
+        ('win_order', Player.win_count.desc()),
+        ('loss_order', Player.loss_count.desc()),
+        ('match_order', Player.match_count.desc()),
+        ('rate_order', Player.rate_count.desc()),
+        ('opponent_order', Player.opponent_count.desc()),
+        ('achieve_order', Player.achieve_count.desc()),
     ]
 
-    for order_field, primary_criteria, secondary_criteria in categories:
-        players = Player.query.order_by(primary_criteria, secondary_criteria).all()
+    for order_field, primary_criteria in categories:
+        players = Player.query.order_by(primary_criteria).all()
         
         current_rank = 0
         previous_primary_value = None
@@ -150,7 +150,19 @@ def rankings():
     if category not in valid_categories:
         return jsonify([])
 
-    players = Player.query.order_by(getattr(Player, category)).offset(offset).limit(limit).all()
+    secondary_criteria = {
+        'win_order': Player.match_count.desc(),
+        'loss_order': Player.match_count.desc(),
+        'match_order': Player.win_count.desc(),
+        'rate_order': Player.match_count.desc(),
+        'opponent_order': Player.win_count.desc(),
+        'achieve_order': Player.match_count.desc(),
+    }
+    
+    primary_order = getattr(Player, category)
+    secondary_order = secondary_criteria.get(category)
+    
+    players = Player.query.order_by(primary_order, secondary_order).offset(offset).limit(limit).all()
 
     response = []
     for player in players:
