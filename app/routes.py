@@ -450,6 +450,91 @@ def get_logs():
     logs = UpdateLog.query.order_by(UpdateLog.timestamp.desc()).all()
     return jsonify([{'id': log.id, 'title': log.title} for log in logs])
 
+@current_app.route('/revert_log', methods=['POST'])
+def revert_log():
+    try:
+        log_id = request.json.get('log_id')
+        log = UpdateLog.query.get(log_id)
+
+        if not log:
+            return jsonify({'success': False, 'message': '로그를 찾을 수 없습니다.'})
+
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(log.html_content, 'html.parser')
+        rows = soup.select('tbody tr')
+        
+        rank_map = {}
+        for row in rows:
+            columns = row.find_all('td')
+            name = columns[0].text.strip()
+            previous_rank = columns[1].text.strip()
+            current_rank = columns[2].text.strip()
+            change = columns[4].text.strip()
+            
+            if change == "New":
+                change = None
+            elif change == "Up":
+                change = "Down"
+            elif change == "Down":
+                change = "Up"
+
+            rank_map[name] = {
+                'previous_rank': None if previous_rank == '무' else int(previous_rank),
+                'rank': None if current_rank == '무' else int(current_rank),
+                'rank_change': change
+            }
+
+        for player in Player.query.filter(Player.name.in_(rank_map.keys())).all():
+            if player.name in rank_map:
+                player.previous_rank = rank_map[player.name]['previous_rank']
+                player.rank = rank_map[player.name]['rank']
+                player.rank_change = rank_map[player.name]['rank_change']
+
+        db.session.commit()
+
+        table_rows = [
+            f"""
+            <tr>
+                <td class="border border-gray-300 p-2">{player.name}</td>
+                <td class="border border-gray-300 p-2">{player.previous_rank or '무'}</td>
+                <td class="border border-gray-300 p-2">{player.rank or '무'}</td>
+                <td class="border border-gray-300 p-2">{player.rate_count}%</td>
+                <td class="border border-gray-300 p-2">{player.rank_change or ''}</td>
+            </tr>
+            """
+            for player in Player.query.order_by(Player.rank).filter(Player.name.in_(rank_map.keys())).all()
+        ]
+
+        html_content = f"""
+        <div>
+            <table class="w-full border-collapse border border-gray-300 text-center">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border border-gray-300 p-2"></th>
+                        <th class="border border-gray-300 p-2">전</th>
+                        <th class="border border-gray-300 p-2">후</th>
+                        <th class="border border-gray-300 p-2">승률</th>
+                        <th class="border border-gray-300 p-2">변동</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join(table_rows)}
+                </tbody>
+            </table>
+        </div>
+        """
+
+        new_log = UpdateLog(
+            title=f"복원 - {seoul_time.date()}",
+            html_content=html_content
+        )
+        db.session.add(new_log)
+        db.session.commit()
+
+        return jsonify({'success': True, 'message': '이전 상태로 복원되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 @current_app.route('/delete_logs', methods=['POST'])
 def delete_logs():
     ids = request.json.get('ids', [])
