@@ -482,7 +482,7 @@ def revert_log():
                 change = "Down"
             elif change == "Down":
                 change = "Up"
-            elif change == None:
+            elif change == "":
                 change = "New"
 
             rank_map[name] = {
