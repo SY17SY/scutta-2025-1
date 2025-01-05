@@ -103,9 +103,11 @@ def update_player_orders():
         
         current_rank = 0
         previous_primary_value = None
+        
+        primary_field_name = primary_criteria.element.name
 
         for i, player in enumerate(players, start=1):
-            primary_value = getattr(player, primary_criteria.key)
+            primary_value = getattr(player, primary_field_name)
             if primary_value != previous_primary_value:
                 current_rank = i
                 previous_primary_value = primary_value
