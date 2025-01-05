@@ -1,7 +1,7 @@
 from flask import render_template, current_app
 from flask import request, jsonify
 from app import db
-from sqlalchemy import desc, and_
+from sqlalchemy import and_
 from app.models import Match, Player, UpdateLog, League
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -434,9 +434,10 @@ def update_ranks():
         log = UpdateLog(title=str(current_time.date()), html_content=html_content)
         db.session.add(log)
 
-        for player in Player.query.all():
+        for player in Player.query.filter(Player.rank_change.isnot(None)).all():
             player.rank = player.previous_rank
             player.previous_rank = None
+            player.rank_change = None
 
         db.session.commit()
         return jsonify({'success': True, 'message': '부수 업데이트가 완료되었습니다.'})
@@ -451,6 +452,12 @@ def get_logs():
 @current_app.route('/revert_log', methods=['POST'])
 def revert_log():
     try:
+        players = Player.query.filter(Player.match_count >= 3).order_by(
+            Player.rate_count.desc(), Player.match_count.desc()
+        ).all()
+
+        total_players = len(players)
+        
         log_id = request.json.get('log_id')
         log = UpdateLog.query.get(log_id)
 
@@ -499,7 +506,7 @@ def revert_log():
                 <td class="border border-gray-300 p-2">{player.rank_change or ''}</td>
             </tr>
             """
-            for player in Player.query.order_by(Player.rank).filter(Player.name.in_(rank_map.keys())).all()
+            for player in Player.query.order_by(Player.rate_count.desc()).filter(Player.name.in_(rank_map.keys())).all()
         ]
 
         html_content = f"""
@@ -507,7 +514,7 @@ def revert_log():
             <table class="w-full border-collapse border border-gray-300 text-center">
                 <thead class="bg-gray-100">
                     <tr>
-                        <th class="border border-gray-300 p-2"></th>
+                        <th class="border border-gray-300 p-2">{total_players}명</th>
                         <th class="border border-gray-300 p-2">전</th>
                         <th class="border border-gray-300 p-2">후</th>
                         <th class="border border-gray-300 p-2">승률</th>
@@ -523,11 +530,13 @@ def revert_log():
         
         current_time = datetime.now(ZoneInfo("Asia/Seoul"))
         
-        new_log = UpdateLog(
-            title=f"복원 - {current_time.date()}",
-            html_content=html_content
-        )
+        new_log = UpdateLog(title=f"복원 - {current_time.date()}", html_content=html_content)
         db.session.add(new_log)
+        
+        for player in Player.query.filter(Player.name.in_(rank_map.keys())).all():
+            player.previous_rank = None
+            player.rank_change = None
+        
         db.session.commit()
 
         return jsonify({'success': True, 'message': '이전 상태로 복원되었습니다.'})
