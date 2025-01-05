@@ -6,12 +6,6 @@ from app.models import Match, Player, UpdateLog, League
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-seoul_time = datetime.now(ZoneInfo("Asia/Seoul"))
-
-@current_app.route('/health', methods=['GET'])
-def health_check():
-    return jsonify(status="OK"), 200
-
 @current_app.route('/')
 def index():
     return render_template('index.html')
@@ -74,13 +68,15 @@ def submit_match():
         
         db.session.flush()
         
+        current_time = datetime.now(ZoneInfo("Asia/Seoul"))
+        
         new_match = Match(
             winner=winner.id, 
             winner_name=winner.name, 
             loser=loser.id, 
             loser_name=loser.name, 
             score=score_value, 
-            timestamp=seoul_time, 
+            timestamp=current_time, 
             approved=False
         )
         db.session.add(new_match)
@@ -433,7 +429,9 @@ def update_ranks():
         </div>
         """
 
-        log = UpdateLog(title=str(seoul_time.date()), html_content=html_content)
+        current_time = datetime.now(ZoneInfo("Asia/Seoul"))
+        
+        log = UpdateLog(title=str(current_time.date()), html_content=html_content)
         db.session.add(log)
 
         for player in Player.query.all():
@@ -522,9 +520,11 @@ def revert_log():
             </table>
         </div>
         """
-
+        
+        current_time = datetime.now(ZoneInfo("Asia/Seoul"))
+        
         new_log = UpdateLog(
-            title=f"복원 - {seoul_time.date()}",
+            title=f"복원 - {current_time.date()}",
             html_content=html_content
         )
         db.session.add(new_log)
