@@ -479,16 +479,15 @@ def revert_log():
                 change = "Up"
 
             rank_map[name] = {
-                'previous_rank': None if previous_rank == '무' else int(previous_rank),
-                'rank': None if current_rank == '무' else int(current_rank),
+                'previous_rank': None if current_rank == '무' else int(current_rank),
+                'rank': None if previous_rank == '무' else int(previous_rank),
                 'rank_change': change
             }
 
         for player in Player.query.filter(Player.name.in_(rank_map.keys())).all():
-            if player.name in rank_map:
-                player.previous_rank = rank_map[player.name]['previous_rank']
-                player.rank = rank_map[player.name]['rank']
-                player.rank_change = rank_map[player.name]['rank_change']
+            player.previous_rank = rank_map[player.name]['previous_rank']
+            player.rank = rank_map[player.name]['rank']
+            player.rank_change = rank_map[player.name]['rank_change']
 
         db.session.commit()
 
