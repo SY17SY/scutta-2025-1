@@ -6,6 +6,17 @@ from app.models import Match, Player, UpdateLog, League
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+@current_app.route('/health', method=['GET'])
+def health_check():
+    response = current_app.response_class(
+        response="OK",
+        status=200,
+        mimetype='text/plain'
+    )
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    return response
+
 @current_app.route('/')
 def index():
     return render_template('index.html')
