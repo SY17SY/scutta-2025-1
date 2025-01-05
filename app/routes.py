@@ -6,7 +6,7 @@ from app.models import Match, Player, UpdateLog, League
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-@current_app.route('/health', method=['GET'])
+@current_app.route('/health', methods=['GET'])
 def health_check():
     response = current_app.response_class(
         response="OK",
