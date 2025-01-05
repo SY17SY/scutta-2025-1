@@ -482,6 +482,8 @@ def revert_log():
                 change = "Down"
             elif change == "Down":
                 change = "Up"
+            elif change == None:
+                change = "New"
 
             rank_map[name] = {
                 'previous_rank': None if current_rank == '무' else int(current_rank),
