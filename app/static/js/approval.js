@@ -142,18 +142,12 @@ function updateMatchTable(data) {
     });
 }
 
-document.getElementById('approve-button').addEventListener('click', () => {
-    const selectedIds = selectMatches();
-
-    if (selectedIds.length === 0) {
+function approveMatches(ids) {
+    if (ids.length === 0) {
         alert('선택된 경기가 없습니다.');
         return;
     }
 
-    approveMatches(selectedIds);
-});
-
-function approveMatches(ids) {
     fetch('/approve_matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
