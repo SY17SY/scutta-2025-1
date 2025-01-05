@@ -144,7 +144,7 @@ function updateMatchTable(data) {
 
 function approveMatches(ids) {
     if (ids.length === 0) {
-        alert('선택된 경기가 없습니다.');
+        alert('승인할 경기가 없습니다.');
         return;
     }
 
@@ -181,19 +181,9 @@ function selectMatches() {
 }
 
 function selectAllMatches() {
-    const selectedTab = document.querySelector('.tab.active').textContent.trim();
-
     return Array.from(document.querySelectorAll('.row-checkbox')).filter(cb => {
         const approvedCell = cb.closest('tr').querySelector('td:nth-child(4)').textContent;
-
-        if (selectedTab === '전체') {
-            return approvedCell === '미승인';
-        } else if (selectedTab === '승인 대기') {
-            return approvedCell === '미승인';
-        } else if (selectedTab === '승인 완료') {
-            return approvedCell === '승인';
-        }
-        return false;
+        return approvedCell === '미승인';
     }).map(cb => cb.getAttribute('data-id'));
 }
 
