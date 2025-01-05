@@ -67,6 +67,14 @@ function saveLeague(leagueId) {
             const value1 = scores[key1];
             const value2 = scores[key2];
 
+            if (value1 !== null && value2 !== null && value1 + value2 !== 3) {
+                alert(
+                    `세트 스코어는 3:0 또는 2:1 이어야 합니다.\n` +
+                    `선수 ${i + 1} vs 선수 ${i + j + 2} 의 경기 결과를 수정해 주세요.`
+                );
+                return;
+            }
+
             if (value1 === null && value2 !== null) {
                 scores[key1] = 3 - value2;
             } else if (value1 !== null && value2 === null) {
@@ -133,6 +141,20 @@ function submitLeague(leagueId) {
 
             matches.push({ winner: winner, loser: loser, score: setScore });
         }
+    }
+
+    if (matches.length === 0) {
+        alert("0개의 경기 결과가 제출되었습니다!");
+        fetch(`/delete_league/${leagueId}`, { method: 'DELETE' })
+            .then(deleteResponse => {
+                if (deleteResponse.ok) {
+                    window.location.href = '/league.html';
+                } else {
+                    alert('리그 데이터를 삭제하지 못했습니다.');
+                }
+            })
+            .catch(error => console.error('Error deleting league:', error));
+        return;
     }
 
     fetch('/submit_match', {
