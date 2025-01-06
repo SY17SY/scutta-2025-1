@@ -392,6 +392,18 @@ def update_ranks():
                     current_rank += 1
                 player.previous_rank = current_rank
                 quotas[current_rank - 1] -= 1
+                
+        cutline = []
+        for rank in range(1, 10):
+            lowest_player = (
+                Player.query.filter_by(previous_rank=rank)
+                .order_by(Player.rate_count)
+                .first()
+            )
+            if lowest_player:
+                cutline.append({'rank': rank, 'rate_count': lowest_player.rate_count})
+            else:
+                cutline.append({'rank': rank, 'rate_count': None})
 
         for player in Player.query.filter(Player.match_count < 15).all():
             player.previous_rank = None
@@ -408,21 +420,11 @@ def update_ranks():
             else:
                 player.rank_change = None
 
-        cutline = []
-        for rank in range(1, 10):
-            lowest_player = (
-                Player.query.filter_by(previous_rank=rank)
-                .order_by(Player.rate_count)
-                .first()
-            )
-            if lowest_player:
-                cutline.append({'rank': rank, 'rate_count': lowest_player.rate_count})
-
         cutline_table_rows = [
             f"""
             <tr>
                 <td class=\"border border-gray-300 p-2\">{rank_line['rank']}부</td>
-                <td class=\"border border-gray-300 p-2\">{rank_line['rate_count']}%</td>
+                <td class=\"border border-gray-300 p-2\">{rank_line['rate_count'] or ""}%</td>
             </tr>
             """
             for rank_line in cutline
@@ -442,8 +444,8 @@ def update_ranks():
         ]
 
         html_content = f"""
-        <div class = mb-4>
-            <table class="w-full border-collapse border border-gray-300 text-center">
+        <div>
+            <table class="w-full border-collapse border border-gray-300 text-center mb-4">
                 <thead class="bg-gray-100">
                     <tr>
                         <th class="border border-gray-300 p-2">{total_players}명</th>
@@ -454,7 +456,7 @@ def update_ranks():
                     {''.join(cutline_table_rows)}
                 </tbody>
             </table>
-            <table class="w-full border-collapse border border-gray-300 text-center">
+            <table class="w-full border-collapse border border-gray-300 text-center mb-4">
                 <thead class="bg-gray-100">
                     <tr>
                         <th class="border border-gray-300 p-2">{total_players}명</th>

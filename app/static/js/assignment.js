@@ -111,12 +111,14 @@ function showLogDetail(logId) {
         .then(response => response.json())
         .then(data => {
             const logDetail = document.getElementById('log-detail');
-            const aboveLogList = document.querySelector('#above-log-list');
+            const btnUpdateRanks = document.getElementById('update-ranks');
+            const aboveLogList = document.getElementById('above-log-list');
             const logListContainer = document.querySelector('table');
             logDetail.querySelector('#log-title').textContent = data.title;
             logDetail.querySelector('#log-table-container').innerHTML = data.html_content;
 
             logDetail.classList.remove('hidden');
+            btnUpdateRanks.classList.add('hidden');
             aboveLogList.classList.add('hidden');
             logListContainer.classList.add('hidden');
         })
