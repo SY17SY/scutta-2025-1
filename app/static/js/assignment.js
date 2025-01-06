@@ -111,11 +111,13 @@ function showLogDetail(logId) {
         .then(response => response.json())
         .then(data => {
             const logDetail = document.getElementById('log-detail');
+            const aboveLogList = document.querySelector('#above-log-list');
             const logListContainer = document.querySelector('table');
             logDetail.querySelector('#log-title').textContent = data.title;
             logDetail.querySelector('#log-table-container').innerHTML = data.html_content;
 
             logDetail.classList.remove('hidden');
+            aboveLogList.classList.add('hidden');
             logListContainer.classList.add('hidden');
         })
         .catch(error => console.error('Error loading log detail:', error));

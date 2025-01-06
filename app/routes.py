@@ -384,7 +384,7 @@ def update_ranks():
             if player.rate_count == 100 and player.match_count < 7:
                 player.previous_rank = 5
                 quotas[4] -= 1
-
+        
         current_rank = 1
         for player in players:
             if player.previous_rank is None:
@@ -408,6 +408,26 @@ def update_ranks():
             else:
                 player.rank_change = None
 
+        cutline = []
+        for rank in range(1, 10):
+            lowest_player = (
+                Player.query.filter_by(previous_rank=rank)
+                .order_by(Player.rate_count)
+                .first()
+            )
+            if lowest_player:
+                cutline.append({'rank': rank, 'rate_count': lowest_player.rate_count})
+
+        cutline_table_rows = [
+            f"""
+            <tr>
+                <td class=\"border border-gray-300 p-2\">{rank_line['rank']}부</td>
+                <td class=\"border border-gray-300 p-2\">{rank_line['rate_count']}%</td>
+            </tr>
+            """
+            for rank_line in cutline
+        ]
+        
         table_rows = [
             f"""
             <tr>
@@ -422,7 +442,18 @@ def update_ranks():
         ]
 
         html_content = f"""
-        <div>
+        <div class = mb-4>
+            <table class="w-full border-collapse border border-gray-300 text-center">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border border-gray-300 p-2">{total_players}명</th>
+                        <th class="border border-gray-300 p-2">승률</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join(cutline_table_rows)}
+                </tbody>
+            </table>
             <table class="w-full border-collapse border border-gray-300 text-center">
                 <thead class="bg-gray-100">
                     <tr>
