@@ -480,6 +480,8 @@ def update_ranks():
 
         for player in Player.query.filter(Player.rank_change.isnot(None)).all():
             player.rank = player.previous_rank
+            
+        for player in Player.query.all():
             player.previous_rank = None
             player.rank_change = None
 
