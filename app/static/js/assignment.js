@@ -127,9 +127,13 @@ function showLogDetail(logId) {
 
 function closeLogDetail() {
     const logDetail = document.getElementById('log-detail');
+    const btnUpdateRanks = document.getElementById('update-ranks');
+    const aboveLogList = document.getElementById('above-log-list');
     const logListContainer = document.querySelector('table');
 
     logDetail.classList.add('hidden');
+    btnUpdateRanks.classList.remove('hidden');
+    aboveLogList.classList.remove('hidden');
     logListContainer.classList.remove('hidden');
 }
 
