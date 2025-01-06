@@ -403,7 +403,7 @@ def update_ranks():
             if lowest_player:
                 cutline.append({'rank': rank, 'rate_count': lowest_player.rate_count})
             else:
-                cutline.append({'rank': rank, 'rate_count': None})
+                cutline.append({'rank': rank, 'rate_count': 0})
 
         for player in Player.query.filter(Player.match_count < 15).all():
             player.previous_rank = None
