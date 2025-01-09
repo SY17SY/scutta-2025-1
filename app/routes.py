@@ -512,7 +512,12 @@ def revert_log():
 
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(log.html_content, 'html.parser')
-        rows = soup.select('tbody tr')
+        tables = soup.find_all('table')
+        if len(tables) > 1:
+            target_table = tables[1]
+        else:
+            target_table = tables[0]
+        rows = target_table.find('tbody').find_all('tr')
         
         rank_map = {}
         for row in rows:
@@ -558,7 +563,7 @@ def revert_log():
         ]
 
         html_content = f"""
-        <div>
+        <div class="bg-gray-100">
             <table class="w-full border-collapse border border-gray-300 text-center">
                 <thead class="bg-gray-100">
                     <tr>
