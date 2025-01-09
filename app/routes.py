@@ -424,7 +424,7 @@ def update_ranks():
             f"""
             <tr>
                 <td class=\"border border-gray-300 p-2\">{rank_line['rank']}부</td>
-                <td class=\"border border-gray-300 p-2\">{rank_line['rate_count'] or ""}%</td>
+                <td class=\"border border-gray-300 p-2\">{rank_line['rate_count']}%</td>
             </tr>
             """
             for rank_line in cutline
@@ -444,7 +444,7 @@ def update_ranks():
         ]
 
         html_content = f"""
-        <div>
+        <div class="bg-gray-100">
             <table class="w-full border-collapse border border-gray-300 text-center mb-4">
                 <thead class="bg-gray-100">
                     <tr>

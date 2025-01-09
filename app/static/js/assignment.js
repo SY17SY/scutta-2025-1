@@ -1,15 +1,18 @@
 document.getElementById('update-ranks').addEventListener('click', () => {
-    fetch('/update_ranks', { method: 'POST' })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('부수 업데이트가 완료되었습니다.');
-                loadLogs();
-            } else {
-                alert('오류가 발생했습니다.');
-            }
-        })
-        .catch(error => console.error('Error updating ranks:', error));
+    const confirmUpdate = confirm('부수 업데이트를 하시겠습니까?');
+    if (confirmUpdate) {
+        fetch('/update_ranks', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('부수 업데이트가 완료되었습니다.');
+                    loadLogs();
+                } else {
+                    alert('오류가 발생했습니다.');
+                }
+            })
+            .catch(error => console.error('Error updating ranks:', error));
+    }
 });
 
 document.getElementById('revert-log').addEventListener('click', () => {
