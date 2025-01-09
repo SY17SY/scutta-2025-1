@@ -445,7 +445,7 @@ def update_ranks():
 
         html_content = f"""
         <div class="bg-gray-100">
-            <table class="w-full border-collapse border border-gray-300 text-center mb-4">
+            <table class="w-full bg-white border-collapse border border-gray-300 text-center mb-4">
                 <thead class="bg-gray-100">
                     <tr>
                         <th class="border border-gray-300 p-2">{total_players}명</th>
@@ -456,7 +456,7 @@ def update_ranks():
                     {''.join(cutline_table_rows)}
                 </tbody>
             </table>
-            <table class="w-full border-collapse border border-gray-300 text-center mb-4">
+            <table class="w-full bg-white border-collapse border border-gray-300 text-center mb-4">
                 <thead class="bg-gray-100">
                     <tr>
                         <th class="border border-gray-300 p-2">{total_players}명</th>
@@ -564,7 +564,7 @@ def revert_log():
 
         html_content = f"""
         <div class="bg-gray-100">
-            <table class="w-full border-collapse border border-gray-300 text-center">
+            <table class="w-full bg-white border-collapse border border-gray-300 text-center">
                 <thead class="bg-gray-100">
                     <tr>
                         <th class="border border-gray-300 p-2">{total_players}명</th>
