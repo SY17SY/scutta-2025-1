@@ -169,12 +169,12 @@ function addMatch() {
     newMatch.id = `match-${matchCounter}`;
     newMatch.className = 'match-row flex items-center justify-between mb-2';
     newMatch.innerHTML = `
-        <input type="text" placeholder="Winner" class="winner-input border rounded w-1/3 p-1 text-center mr-2">
+        <input type="text" placeholder="승리" class="winner-input border rounded w-1/3 p-1 text-center mr-2">
         <div class="flex gap-2">
             <button class="score-input px-4 py-1 border rounded" onclick="toggleScore(this, 'match-${matchCounter}')">3:0</button>
             <button class="score-input px-4 py-1 border rounded" onclick="toggleScore(this, 'match-${matchCounter}')">2:1</button>
         </div>
-        <input type="text" placeholder="Loser" class="loser-input border rounded w-1/3 p-1 text-center ml-2">
+        <input type="text" placeholder="패배" class="loser-input border rounded w-1/3 p-1 text-center ml-2">
     `;
     matchList.appendChild(newMatch);
 }
@@ -229,12 +229,12 @@ function submitMatches() {
                     alert(submitData.message);
                     document.getElementById('match-list').innerHTML = `
                         <div id="match-1" class="flex items-center justify-between mb-2">
-                            <input type="text" placeholder="Winner" class="winner-input border rounded w-1/3 p-1 text-center mr-2">
+                            <input type="text" placeholder="승리" class="winner-input border rounded w-1/3 p-1 text-center mr-2">
                             <div class="flex gap-2">
                                 <button class="px-4 py-1 score-input border rounded" onclick="toggleScore(this, 'match-1')">3:0</button>
                                 <button class="px-4 py-1 score-input border rounded" onclick="toggleScore(this, 'match-1')">2:1</button>
                             </div>
-                            <input type="text" placeholder="Loser" class="loser-input border rounded w-1/3 p-1 text-center ml-2">
+                            <input type="text" placeholder="패배" class="loser-input border rounded w-1/3 p-1 text-center ml-2">
                         </div>
                     `;
                     matchCounter = 1;
