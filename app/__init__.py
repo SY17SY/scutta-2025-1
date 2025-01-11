@@ -1,7 +1,6 @@
 import os
 import signal
 import sys
-import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -20,9 +19,13 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
-    logging.basicConfig(level=logging.INFO)
-    logging.info(f"SQLALCHEMY_DATABASE_URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
-
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_size': 5,
+        'max_overflow': 10,
+        'connect_args': {'sslmode': 'require'}
+    }
+    
     db.init_app(app)
     migrate.init_app(app, db)
 
@@ -30,9 +33,8 @@ def create_app():
         from . import routes, models
         try:
             db.create_all()
-            logging.info("Database tables created successfully.")
         except Exception as e:
-            logging.error(f"Error creating database tables: {e}")
+            app.logger.error(f"Database initialization error: {e}")
             raise
     
     signal.signal(signal.SIGTERM, handle_exit_signal)
