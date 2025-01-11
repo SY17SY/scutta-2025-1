@@ -1,6 +1,7 @@
 import os
 import signal
 import sys
+from urllib.parse import urlparse
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -19,11 +20,19 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
+    db_url = app.config["SQLALCHEMY_DATABASE_URI"]
+    parsed_url = urlparse(db_url)
+    
+    if parsed_url.hostname and "singapore-postgres.render.com" in parsed_url.hostname:
+        sslmode = "require"
+    else:
+        sslmode = "disable"
+    
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         'pool_pre_ping': True,
         'pool_size': 5,
         'max_overflow': 10,
-        'connect_args': {'sslmode': 'require'}
+        'connect_args': {'sslmode': sslmode}
     }
     
     db.init_app(app)
