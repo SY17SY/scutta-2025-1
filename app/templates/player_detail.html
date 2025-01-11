@@ -27,32 +27,32 @@
                 <tr>
                     <td class="bg-gray-100 border p-2">승리</td>
                     <td class="border p-2">{{ player.win_count }}</td>
-                    <td class="border p-2">{{ player.win_order }}위</td>
+                    <td class="border p-2">{{ player.win_order or ' ' }}위</td>
                 </tr>
                 <tr>
                     <td class="bg-gray-100 border p-2">패배</td>
                     <td class="border p-2">{{ player.loss_count }}</td>
-                    <td class="border p-2">{{ player.loss_order }}위</td>
+                    <td class="border p-2">{{ player.loss_order or ' ' }}위</td>
                 </tr>
                 <tr>
                     <td class="bg-gray-100 border p-2">승률</td>
                     <td class="border">{{ player.rate_count }} %</td>
-                    <td class="border">{{ player.rate_order }}위</td>
+                    <td class="border">{{ player.rate_order or ' ' }}위</td>
                 </tr>
                 <tr>
                     <td class="bg-gray-100 border p-2">경기</td>
                     <td class="border p-2">{{ player.match_count }} 경기</td>
-                    <td class="border p-2">{{ player.match_order }}위</td>
+                    <td class="border p-2">{{ player.match_order or ' ' }}위</td>
                 </tr>
                 <tr>
                     <td class="bg-gray-100 border p-2">상대</td>
                     <td class="border p-2">{{ player.opponent_count }}명</td>
-                    <td class="border p-2">{{ player.opponent_order }}위</td>
+                    <td class="border p-2">{{ player.opponent_order or ' ' }}위</td>
                 </tr>
                 <tr>
                     <td class="bg-gray-100 border p-2">업적</td>
                     <td class="border p-2">{{ player.achieve_count }}점</td>
-                    <td class="border p-2">{{ player.achieve_order }}위</td>
+                    <td class="border p-2">{{ player.achieve_order or ' ' }}위</td>
                 </tr>
             </table>
         </div>
