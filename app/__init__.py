@@ -20,6 +20,10 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
+    app.config['GLOBAL_TEXTS'] = {
+        'semester': '2025-1'
+    }
+    
     db_url = app.config["SQLALCHEMY_DATABASE_URI"]
     parsed_url = urlparse(db_url)
     
