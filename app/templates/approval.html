@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>경기 승인</title>
+    <title>관리 - 경기 승인</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -11,12 +11,11 @@
 </head>
 <body class="bg-gray-100">
     <header class="flex justify-between items-center p-4 bg-white shadow">
-        <button onclick="confirmNavigation()" class="text-xl">&larr;</button>
+        <button class="text-xl" onclick="confirmNavigation()">&larr;</button>
         <h1 class="text-xl font-bold">관리</h1>
         <div class="text-sm">{{ config['GLOBAL_TEXTS']['semester'] }}</div>
     </header>
 
-    <!-- Index Bar -->
     <div class="index-bar">
         <div class="index-item active" onclick="navigateTo('approval.html')">경기 승인</div>
         <div class="index-item" onclick="navigateTo('assignment.html')">부수 배정</div>
@@ -24,14 +23,12 @@
     </div>
 
     <div class="container mx-auto p-4">
-        <!-- Tabs -->
         <div class="tabs">
-            <div class="tab active text-sm" onclick="filterMatches('all')">전체</div>
+            <div class="tab text-sm active" onclick="filterMatches('all')">전체</div>
             <div class="tab text-sm" onclick="filterMatches('pending')">승인 대기</div>
             <div class="tab text-sm" onclick="filterMatches('approved')">승인 완료</div>
         </div>
 
-        <!-- Action Buttons -->
         <div class="action-buttons">
             <div class="left-buttons">
                 <button class="bg-main text-white px-4 py-2 rounded button" onclick="approveMatches(selectAllMatches())">전체 승인</button>
@@ -42,11 +39,9 @@
             </div>
         </div>
 
-        <!-- Period Search Button -->
         <button id="open-calendar" class="bg-main text-white px-4 py-2 rounded">기간 검색</button>
 
-        <!-- Calendar Modal -->
-        <div id="calendar-modal" class="hidden fixed inset-x-0 bg-gray-800 bg-opacity-75 flex justify-center" style="top: 100px;">
+        <div id="calendar-modal" class="fixed inset-x-0 bg-gray-800 bg-opacity-75 flex justify-center hidden" style="top: 100px; bottom: 600px;">
             <div class="bg-white p-6 rounded shadow-lg">
                 <h2 class="text-xl mb-4">기간 검색</h2>
                 <input id="calendar" class="border rounded px-2 py-1 mb-4 w-full" />
@@ -56,7 +51,6 @@
             </div>
         </div>
 
-        <!-- Table -->
         <table class="table">
             <thead>
                 <tr>

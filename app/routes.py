@@ -49,6 +49,22 @@ def player_detail(player_id):
 
     return render_template('player_detail.html', player=player)
 
+
+# index.js
+
+@current_app.route('/check_players', methods=['POST'])
+def check_players():
+    matches = request.json.get('matches', [])
+    player_names = set()
+    for match in matches:
+        player_names.add(match['winner'])
+        player_names.add(match['loser'])
+
+    existing_players = {player.name for player in Player.query.filter(Player.name.in_(player_names), Player.is_valid == True).all()}
+    unknown_players = list(player_names - existing_players)
+
+    return jsonify({'unknownPlayers': unknown_players})
+
 @current_app.route('/submit_match', methods=['POST'])
 def submit_match():
     data = request.get_json()
@@ -94,58 +110,6 @@ def submit_match():
     
     db.session.commit()
     return jsonify({"message": f"{len(data)}개의 경기 결과가 제출되었습니다!"}), 200
-
-def update_player_orders():
-    categories = [
-        ('win_order', Player.win_count.desc()),
-        ('loss_order', Player.loss_count.desc()),
-        ('match_order', Player.match_count.desc()),
-        ('rate_order', Player.rate_count.desc()),
-        ('opponent_order', Player.opponent_count.desc()),
-        ('achieve_order', Player.achieve_count.desc()),
-    ]
-
-    for order_field, primary_criteria in categories:
-        players = Player.query.filter(Player.is_valid == True).order_by(primary_criteria).all()
-        
-        current_rank = 0
-        previous_primary_value = None
-        
-        primary_field_name = primary_criteria.element.name
-
-        for i, player in enumerate(players, start=1):
-            primary_value = getattr(player, primary_field_name)
-            if primary_value != previous_primary_value:
-                current_rank = i
-                previous_primary_value = primary_value
-            
-            setattr(player, order_field, current_rank)
-
-    db.session.commit()
-
-@current_app.route('/approve_matches', methods=['POST'])
-def approve_matches():
-    ids = request.json.get('ids', [])
-    matches = Match.query.filter(Match.id.in_(ids), Match.approved == False).all()
-
-    for match in matches:
-        match.approved = True
-        winner = Player.query.get(match.winner)
-        loser = Player.query.get(match.loser)
-        if winner:
-            winner.match_count += 1
-            winner.win_count += 1
-            winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2)
-            winner.opponent_count = calculate_opponent_count(winner.id)
-        if loser:
-            loser.match_count += 1
-            loser.loss_count += 1
-            loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2)
-            loser.opponent_count = calculate_opponent_count(loser.id)
-
-    db.session.commit()
-    update_player_orders()
-    return jsonify({'success': True, 'message': '선택한 경기가 승인되었습니다.'})
 
 @current_app.route('/rankings', methods=['GET'])
 def rankings():
@@ -220,31 +184,8 @@ def search_players():
 
     return jsonify(response)
 
-@current_app.route('/delete_matches', methods=['POST'])
-def delete_matches():
-    ids = request.json.get('ids', [])
-    matches = Match.query.filter(Match.id.in_(ids), Match.approved == True).all()
 
-    for match in matches:
-        if match.approved:
-            winner = Player.query.get(match.winner)
-            loser = Player.query.get(match.loser)
-            if winner:
-                winner.match_count -= 1
-                winner.win_count -= 1
-                winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2) if winner.match_count > 0 else 0
-                winner.opponent_count = calculate_opponent_count(winner.id)
-            if loser:
-                loser.match_count -= 1
-                loser.loss_count -= 1
-                loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2) if loser.match_count > 0 else 0
-                loser.opponent_count = calculate_opponent_count(loser.id)
-    
-    Match.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
-    db.session.commit()
-    update_player_orders()
-    
-    return jsonify({'success': True, 'message': '선택한 경기가 삭제되었습니다.'})
+# approval.js
 
 @current_app.route('/get_matches', methods=['GET'])
 def get_matches():
@@ -311,73 +252,91 @@ def calculate_opponent_count(player_id):
 
     return len(opponent_ids)
 
-@current_app.route('/register_players', methods=['POST'])
-def register_players():
-    data = request.get_json()
-    players = data.get('players', [])
-    added_count = 0
+def update_player_orders():
+    categories = [
+        ('win_order', Player.win_count.desc()),
+        ('loss_order', Player.loss_count.desc()),
+        ('match_order', Player.match_count.desc()),
+        ('rate_order', Player.rate_count.desc()),
+        ('opponent_order', Player.opponent_count.desc()),
+        ('achieve_order', Player.achieve_count.desc()),
+    ]
 
-    for name in players:
-        if not Player.query.filter_by(name=name).first():
-            new_player = Player(name=name)
-            db.session.add(new_player)
-            added_count += 1
+    for order_field, primary_criteria in categories:
+        players = Player.query.filter(Player.is_valid == True).order_by(primary_criteria).all()
+        
+        current_rank = 0
+        previous_primary_value = None
+        
+        primary_field_name = primary_criteria.element.name
+
+        for i, player in enumerate(players, start=1):
+            primary_value = getattr(player, primary_field_name)
+            if primary_value != previous_primary_value:
+                current_rank = i
+                previous_primary_value = primary_value
+            
+            setattr(player, order_field, current_rank)
 
     db.session.commit()
-    return jsonify({'success': True, 'added_count': added_count})
-
-@current_app.route('/get_players', methods=['GET'])
-def get_players():
-    players = Player.query.order_by(Player.is_valid.desc(), Player.name).all()
-    response = []
-    for player in players:
-        response.append({
-            'id': player.id,
-            'name': player.name,
-            'win_count': player.win_count,
-            'rate_count': player.rate_count,
-            'match_count': player.match_count,
-            'achieve_count': player.achieve_count,
-            'is_valid': player.is_valid
-        })
-    return jsonify(response)
-
-@current_app.route('/toggle_validity', methods=['POST'])
-def toggle_validity():
+    
+@current_app.route('/approve_matches', methods=['POST'])
+def approve_matches():
     ids = request.json.get('ids', [])
-    if not ids:
-        return jsonify({'success': False, 'message': '선택된 항목이 없습니다.'}), 400
+    matches = Match.query.filter(Match.id.in_(ids), Match.approved == False).all()
 
-    players = Player.query.filter(Player.id.in_(ids)).all()
-    for player in players:
-        player.is_valid = not player.is_valid
-
-    db.session.commit()
-    update_player_orders()
-    return jsonify({'success': True})
-
-@current_app.route('/delete_players', methods=['POST'])
-def delete_players():
-    data = request.get_json()
-    ids = data.get('ids', [])
-
-    Player.query.filter(Player.id.in_(ids)).delete(synchronize_session=False)
-    db.session.commit()
-    update_player_orders()
-    return jsonify({'success': True})
-
-@current_app.route('/check_players', methods=['POST'])
-def check_players():
-    matches = request.json.get('matches', [])
-    player_names = set()
     for match in matches:
-        player_names.add(match['winner'])
-        player_names.add(match['loser'])
+        match.approved = True
+        winner = Player.query.get(match.winner)
+        loser = Player.query.get(match.loser)
+        if winner:
+            winner.match_count += 1
+            winner.win_count += 1
+            winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2)
+            winner.opponent_count = calculate_opponent_count(winner.id)
+        if loser:
+            loser.match_count += 1
+            loser.loss_count += 1
+            loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2)
+            loser.opponent_count = calculate_opponent_count(loser.id)
 
-    existing_players = {player.name for player in Player.query.filter(Player.name.in_(player_names), Player.is_valid == True).all()}
-    unknown_players = list(player_names - existing_players)
+    db.session.commit()
+    update_player_orders()
+    return jsonify({'success': True, 'message': '선택한 경기가 승인되었습니다.'})
 
-    return jsonify({'unknownPlayers': unknown_players})
+@current_app.route('/delete_matches', methods=['POST'])
+def delete_matches():
+    ids = request.json.get('ids', [])
+    matches = Match.query.filter(Match.id.in_(ids), Match.approved == True).all()
+
+    for match in matches:
+        if match.approved:
+            winner = Player.query.get(match.winner)
+            loser = Player.query.get(match.loser)
+            if winner:
+                winner.match_count -= 1
+                winner.win_count -= 1
+                winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2) if winner.match_count > 0 else 0
+                winner.opponent_count = calculate_opponent_count(winner.id)
+            if loser:
+                loser.match_count -= 1
+                loser.loss_count -= 1
+                loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2) if loser.match_count > 0 else 0
+                loser.opponent_count = calculate_opponent_count(loser.id)
+    
+    Match.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
+    db.session.commit()
+    update_player_orders()
+    
+    return jsonify({'success': True, 'message': '선택한 경기가 삭제되었습니다.'})
+
+
+# assignment.js
+
+@current_app.route('/logs', methods=['GET'])
+def get_logs():
+    logs = UpdateLog.query.order_by(UpdateLog.timestamp.desc()).all()
+    return jsonify([{'id': log.id, 'title': log.title} for log in logs])
 
 @current_app.route('/update_ranks', methods=['POST'])
 def update_ranks():
@@ -504,12 +463,7 @@ def update_ranks():
         return jsonify({'success': True, 'message': '부수 업데이트가 완료되었습니다.'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-
-@current_app.route('/logs', methods=['GET'])
-def get_logs():
-    logs = UpdateLog.query.order_by(UpdateLog.timestamp.desc()).all()
-    return jsonify([{'id': log.id, 'title': log.title} for log in logs])
-
+    
 @current_app.route('/revert_log', methods=['POST'])
 def revert_log():
     try:
@@ -609,8 +563,8 @@ def revert_log():
 
         return jsonify({'success': True, 'message': '이전 상태로 복원되었습니다.'})
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
+        return jsonify({'success': False, 'error': str(e)})    
+    
 @current_app.route('/delete_logs', methods=['POST'])
 def delete_logs():
     ids = request.json.get('ids', [])
@@ -625,6 +579,64 @@ def get_log_detail(log_id):
         return jsonify({'error': '로그를 찾을 수 없습니다.'}), 404
 
     return jsonify({'title': log.title, 'html_content': log.html_content})
+
+
+# settings.js
+
+@current_app.route('/register_players', methods=['POST'])
+def register_players():
+    data = request.get_json()
+    players = data.get('players', [])
+    added_count = 0
+
+    for name in players:
+        if not Player.query.filter_by(name=name).first():
+            new_player = Player(name=name)
+            db.session.add(new_player)
+            added_count += 1
+
+    db.session.commit()
+    return jsonify({'success': True, 'added_count': added_count})
+
+@current_app.route('/get_players', methods=['GET'])
+def get_players():
+    players = Player.query.order_by(Player.is_valid.desc(), Player.name).all()
+    response = []
+    for player in players:
+        response.append({
+            'id': player.id,
+            'name': player.name,
+            'win_count': player.win_count,
+            'rate_count': player.rate_count,
+            'match_count': player.match_count,
+            'achieve_count': player.achieve_count,
+            'is_valid': player.is_valid
+        })
+    return jsonify(response)
+
+@current_app.route('/toggle_validity', methods=['POST'])
+def toggle_validity():
+    ids = request.json.get('ids', [])
+    if not ids:
+        return jsonify({'success': False, 'message': '선택된 항목이 없습니다.'}), 400
+
+    players = Player.query.filter(Player.id.in_(ids)).all()
+    for player in players:
+        player.is_valid = not player.is_valid
+
+    db.session.commit()
+    update_player_orders()
+    return jsonify({'success': True})
+
+@current_app.route('/delete_players', methods=['POST'])
+def delete_players():
+    data = request.get_json()
+    ids = data.get('ids', [])
+
+    Player.query.filter(Player.id.in_(ids)).delete(synchronize_session=False)
+    db.session.commit()
+    update_player_orders()
+    return jsonify({'success': True})
 
 @current_app.route('/update_achievement', methods=['POST'])
 def update_achievement():
@@ -648,6 +660,34 @@ def update_achievement():
     db.session.commit()
 
     return jsonify({'success': True, 'new_achieve_count': player.achieve_count})
+
+
+# league.js
+
+@current_app.route('/get_leagues', methods=['GET'])
+def get_leagues():
+    leagues = League.query.order_by(League.id.desc()).all()
+    response = []
+    for league in leagues:
+        response.append({
+            'id': league.id,
+            'p1': league.p1,
+            'p2': league.p2,
+            'p3': league.p3,
+            'p4': league.p4,
+            'p5': league.p5
+        })
+    
+    return jsonify(response)
+
+@current_app.route('/league/<int:league_id>', methods=['GET'])
+def view_league(league_id):
+    league = League.query.get_or_404(league_id)
+    players = [league.p1, league.p2, league.p3, league.p4, league.p5]
+
+    indexed_players = [{'index': idx, 'player': player} for idx, player in enumerate(players)]
+
+    return render_template('league_detail.html', league=league, players=indexed_players)
 
 @current_app.route('/create_league', methods=['POST'])
 def create_league():
@@ -676,30 +716,8 @@ def create_league():
 
     return jsonify({'success': True, 'message': '리그전이 생성되었습니다.', 'league_id': new_league.id})
 
-@current_app.route('/get_leagues', methods=['GET'])
-def get_leagues():
-    leagues = League.query.order_by(League.id.desc()).all()
-    response = []
-    for league in leagues:
-        response.append({
-            'id': league.id,
-            'p1': league.p1,
-            'p2': league.p2,
-            'p3': league.p3,
-            'p4': league.p4,
-            'p5': league.p5
-        })
-    
-    return jsonify(response)
 
-@current_app.route('/league/<int:league_id>', methods=['GET'])
-def view_league(league_id):
-    league = League.query.get_or_404(league_id)
-    players = [league.p1, league.p2, league.p3, league.p4, league.p5]
-
-    indexed_players = [{'index': idx, 'player': player} for idx, player in enumerate(players)]
-
-    return render_template('league_detail.html', league=league, players=indexed_players)
+# league_detail.js
 
 @current_app.route('/league/<int:league_id>/detail', methods=['GET'])
 def league_detail(league_id):

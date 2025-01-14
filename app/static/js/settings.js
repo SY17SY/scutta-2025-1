@@ -1,32 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
-    loadPlayers();
-});
-
-function registerPlayers() {
-    const input = document.getElementById('player-input');
-    const players = input.value.trim().split(' ');
-
-    if (players.length > 0 && players[0] !== "") {
-        fetch('/register_players', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ players })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(`${data.added_count}명의 선수가 등록되었습니다.`);
-                    input.value = "";
-                    loadPlayers();
-                } else {
-                    alert('오류가 발생했습니다. 다시 시도해주세요.');
-                }
-            })
-            .catch(error => console.error('Error registering players:', error));
-    } else {
-        alert("선수를 입력해주세요.");
-    }
-}
+document.addEventListener('DOMContentLoaded', loadPlayers);
 
 function loadPlayers() {
     fetch('/get_players')
@@ -54,29 +26,30 @@ function loadPlayers() {
         .catch(error => console.error('Error loading players:', error));
 }
 
-function addAchievement(playerId) {
-    const input = prompt('추가할 점수를 입력하세요:')
-    const additionalAchievements = parseInt(input, 10);
+function registerPlayers() {
+    const input = document.getElementById('player-input');
+    const players = input.value.trim().split(' ');
 
-    if (isNaN(additionalAchievements) || additionalAchievements <= 0) {
-        alert('올바른 숫자를 입력해주세요.');
-        return;
-    }
-
-    fetch('/update_achievement', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ player_id: playerId, achievements: additionalAchievements })
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadPlayers();
-            } else {
-                alert(`오류 발생: ${data.error}`);
-            }
+    if (players.length > 0 && players[0] !== "") {
+        fetch('/register_players', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ players })
         })
-        .catch(error => console.error('Error updating achievements:', error));
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`${data.added_count}명의 선수가 등록되었습니다.`);
+                    input.value = "";
+                    loadPlayers();
+                } else {
+                    alert('오류가 발생했습니다. 다시 시도해주세요.');
+                }
+            })
+            .catch(error => console.error('Error registering players:', error));
+    } else {
+        alert("선수를 입력해주세요.");
+    }
 }
 
 function toggleValidity() {
@@ -135,3 +108,27 @@ function toggleSelectAll(checkbox) {
     checkboxes.forEach(cb => cb.checked = checkbox.checked);
 }
 
+function addAchievement(playerId) {
+    const input = prompt('추가할 점수를 입력하세요:')
+    const additionalAchievements = parseInt(input, 10);
+
+    if (isNaN(additionalAchievements) || additionalAchievements <= 0) {
+        alert('올바른 숫자를 입력해주세요.');
+        return;
+    }
+
+    fetch('/update_achievement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player_id: playerId, achievements: additionalAchievements })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadPlayers();
+            } else {
+                alert(`오류 발생: ${data.error}`);
+            }
+        })
+        .catch(error => console.error('Error updating achievements:', error));
+}

@@ -1,6 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
-    loadLeagues();
-});
+document.addEventListener('DOMContentLoaded', loadLeagues);
 
 function loadLeagues() {
     fetch('/get_leagues')

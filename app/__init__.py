@@ -1,4 +1,3 @@
-import os
 import signal
 import sys
 from urllib.parse import urlparse

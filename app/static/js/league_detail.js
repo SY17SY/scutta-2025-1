@@ -3,24 +3,6 @@ document.addEventListener('DOMContentLoaded', function () {
     loadLeagueDetail(leagueId);
 });
 
-document.addEventListener('input', function (event) {
-    if (event.target.matches('.league-input')) {
-        const input = event.target;
-        const value = input.value;
-
-        if (!/^\d*$/.test(value)) {
-            input.value = value.replace(/\D/g, '');
-        }
-
-        const numericValue = parseInt(input.value, 10);
-        if (numericValue > 3) {
-            input.value = '';
-        } else if (numericValue < 0) {
-            input.value = '';
-        }
-    }
-});
-
 function loadLeagueDetail(leagueId) {
     fetch(`/league/${leagueId}/detail`)
         .then(response => {
@@ -45,6 +27,24 @@ function loadLeagueDetail(leagueId) {
             console.error('Error loading league detail:', error);
         });
 }
+
+document.addEventListener('input', function (event) {
+    if (event.target.matches('.league-input')) {
+        const input = event.target;
+        const value = input.value;
+
+        if (!/^\d*$/.test(value)) {
+            input.value = value.replace(/\D/g, '');
+        }
+
+        const numericValue = parseInt(input.value, 10);
+        if (numericValue > 3) {
+            input.value = '';
+        } else if (numericValue < 0) {
+            input.value = '';
+        }
+    }
+});
 
 function saveLeague(leagueId) {
     const inputs = document.querySelectorAll('.league-input');

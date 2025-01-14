@@ -1,15 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
-    loadMatches();
-});
-
-const tabs = document.querySelectorAll('.tab');
-
-tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-    });
-});
+document.addEventListener('DOMContentLoaded', loadMatches);
 
 function loadMatches() {
     fetch('/get_matches')
@@ -31,6 +20,15 @@ function loadMatches() {
         })
         .catch(error => console.error('Error fetching matches:', error));
 }
+
+const tabs = document.querySelectorAll('.tab');
+
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+    });
+});
 
 function filterMatches(status) {
     const rows = document.querySelectorAll('#match-table-body tr');
@@ -54,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearDatesButton = document.getElementById('clear-dates');
     const calendarElement = document.getElementById('calendar');
 
-
     let selectedDates = [];
 
     if (calendarElement) {
@@ -67,8 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         clearDatesButton.addEventListener('click', () => {
-            calendar.clear(); // Clear selected dates
-            selectedDates = []; // Reset selectedDates array
+            calendar.clear();
+            selectedDates = [];
         });
     } else {
         console.error('Calendar element not found!');

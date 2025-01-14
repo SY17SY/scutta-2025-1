@@ -1,3 +1,27 @@
+document.addEventListener('DOMContentLoaded', loadLogs);
+
+function loadLogs() {
+    fetch('/logs')
+        .then(response => response.json())
+        .then(data => {
+            const logList = document.getElementById('log-list');
+            logList.innerHTML = '';
+            data.forEach(log => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="border border-gray-300 p-2 text-center">
+                        <input type="checkbox" class="log-checkbox" value="${log.id}">
+                    </td>
+                    <td class="border border-gray-300 p-2 cursor-pointer" onclick="showLogDetail(${log.id})">
+                        ${log.title}
+                    </td>
+                `;
+                logList.appendChild(row);
+            });
+        })
+        .catch(error => console.error('Error loading logs:', error));
+}
+
 document.getElementById('update-ranks').addEventListener('click', () => {
     const confirmUpdate = confirm('부수 업데이트를 하시겠습니까?');
     if (confirmUpdate) {
@@ -57,6 +81,11 @@ document.getElementById('revert-log').addEventListener('click', () => {
         .catch(error => console.error('Error fetching logs:', error));
 });
 
+document.getElementById('select-all').addEventListener('change', (e) => {
+    const checkboxes = document.querySelectorAll('.log-checkbox');
+    checkboxes.forEach(cb => cb.checked = e.target.checked);
+});
+
 document.getElementById('delete-selected').addEventListener('click', () => {
     const selectedIds = Array.from(document.querySelectorAll('.log-checkbox:checked')).map(cb => cb.value);
 
@@ -81,33 +110,6 @@ document.getElementById('delete-selected').addEventListener('click', () => {
         })
         .catch(error => console.error('Error deleting logs:', error));
 });
-
-document.getElementById('select-all').addEventListener('change', (e) => {
-    const checkboxes = document.querySelectorAll('.log-checkbox');
-    checkboxes.forEach(cb => cb.checked = e.target.checked);
-});
-
-function loadLogs() {
-    fetch('/logs')
-        .then(response => response.json())
-        .then(data => {
-            const logList = document.getElementById('log-list');
-            logList.innerHTML = '';
-            data.forEach(log => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="border border-gray-300 p-2 text-center">
-                        <input type="checkbox" class="log-checkbox" value="${log.id}">
-                    </td>
-                    <td class="border border-gray-300 p-2 cursor-pointer" onclick="showLogDetail(${log.id})">
-                        ${log.title}
-                    </td>
-                `;
-                logList.appendChild(row);
-            });
-        })
-        .catch(error => console.error('Error loading logs:', error));
-}
 
 function showLogDetail(logId) {
     fetch(`/log/${logId}`)
@@ -139,5 +141,3 @@ function closeLogDetail() {
     aboveLogList.classList.remove('hidden');
     logListContainer.classList.remove('hidden');
 }
-
-document.addEventListener('DOMContentLoaded', loadLogs);

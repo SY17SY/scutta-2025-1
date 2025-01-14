@@ -1,5 +1,5 @@
 function verifyPassword() {
-    const correctPassword = "yeong6701"; // Replace with secure method
+    const correctPassword = "yeong6701";
     const inputPassword = document.getElementById('password-input').value;
     const errorMessage = document.getElementById('error-message');
 

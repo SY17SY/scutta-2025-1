@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRankings(currentCategory);
 });
 
+document.getElementById('menu-toggle').addEventListener('click', () => toggleMenu(true));
+
 function toggleMenu(show) {
     const menu = document.getElementById('menu');
     const overlay = document.getElementById('menu-overlay');
@@ -18,140 +20,6 @@ function toggleMenu(show) {
         menu.classList.remove('active');
         overlay.classList.remove('active');
     }
-}
-
-document.getElementById('menu-toggle').addEventListener('click', () => toggleMenu(true));
-
-function loadRankings(category, append = false) {
-    if (!append) {
-        currentOffset = 0;
-        currentCategory = category;
-        allPlayers = []; // 초기화
-    }
-
-    fetch(`/rankings?category=${category}&offset=${currentOffset}&limit=${limit}`)
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error('데이터를 불러오는 중 문제가 발생했습니다.');
-            }
-            return response.json();
-        })
-        .then((data) => {
-            if (data.length === 0 && append) {
-                return;
-            }
-
-            allPlayers = append ? [...allPlayers, ...data] : data;
-            updateTable(data, append);
-            currentOffset += limit; // 다음 페이지를 위한 offset 증가
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            alert('데이터를 불러오는 데 실패했습니다.');
-        });
-}
-
-function selectCategory(button, category) {
-    document.querySelectorAll(".flex.mb-4 button").forEach((btn) => btn.classList.remove("selected"));
-    button.classList.add("selected");
-
-    currentCategory = category;
-
-    const dynamicColumn = document.getElementById("dynamic-column");
-    if (dynamicColumn) {
-        dynamicColumn.textContent = getCategoryDisplayName(category);
-    }
-
-    const searchInput = document.querySelector('input[oninput="searchByName(this.value)"]');
-    const query = searchInput ? searchInput.value.trim() : '';
-
-    if (query) {
-        searchByName(query);
-    } else {
-        loadRankings(category);
-    }
-}
-
-function updateTable(data, append) {
-    const tableBody = document.getElementById("table-body");
-    const dynamicColumn = document.getElementById("dynamic-column");
-    dynamicColumn.textContent = getCategoryDisplayName(currentCategory);
-
-    if (!append) {
-        tableBody.innerHTML = '';
-    }
-
-    data.forEach((player) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td class="border border-gray-300 p-2">${player.current_rank || ""}</td>
-            <td class="border border-gray-300 p-2">${player.rank || "무"}</td>
-            <td class="border border-gray-300 p-2">
-                <a href="/player/${player.id}">${player.name || " "}</a>
-            </td>
-            <td class="border border-gray-300 p-2">${player.category_value}</td>
-            <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
-
-function getCategoryDisplayName(category) {
-    const categoryDisplayNames = {
-        win_order: "승리",
-        loss_order: "패배",
-        rate_order: "승률",
-        match_order: "승률",
-        opponent_order: "상대",
-        achieve_order: "업적",
-    };
-    return categoryDisplayNames[category];
-}
-
-function loadMore() {
-    loadRankings(currentCategory, true);
-}
-
-function searchByName(query) {
-    const tableBody = document.getElementById("table-body");
-
-    if (!query.trim()) {
-        loadRankings(currentCategory, false);
-        return;
-    }
-
-    fetch(`/search_players?query=${encodeURIComponent(query)}&category=${currentCategory}`)
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error("검색 데이터를 불러오는 중 문제가 발생했습니다.");
-            }
-            return response.json();
-        })
-        .then((data) => {
-            tableBody.innerHTML = '';
-            if (data.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="5">검색 결과가 없습니다.</td></tr>';
-                return;
-            }
-
-            data.forEach((player) => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td class="border border-gray-300 p-2">${player.current_rank || ""}</td>
-                    <td class="border border-gray-300 p-2">${player.rank || "무"}</td>
-                    <td class="border border-gray-300 p-2">
-                        <a href="/player/${player.id}">${player.name || " "}</a>
-                    </td>
-                    <td class="border border-gray-300 p-2">${player.category_value}</td>
-                    <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        })
-        .catch((error) => {
-            console.error("Error:", error);
-            tableBody.innerHTML = '<tr><td colspan="5">검색 결과를 가져오지 못했습니다.</td></tr>';
-        });
 }
 
 let matchCounter = 1;
@@ -245,4 +113,136 @@ function submitMatches() {
         }
     })
     .catch(error => console.error('Error:', error));
+}
+
+function selectCategory(button, category) {
+    document.querySelectorAll(".flex.mb-4 button").forEach((btn) => btn.classList.remove("selected"));
+    button.classList.add("selected");
+
+    currentCategory = category;
+
+    const dynamicColumn = document.getElementById("dynamic-column");
+    if (dynamicColumn) {
+        dynamicColumn.textContent = getCategoryDisplayName(category);
+    }
+
+    const searchInput = document.querySelector('input[oninput="searchByName(this.value)"]');
+    const query = searchInput ? searchInput.value.trim() : '';
+
+    if (query) {
+        searchByName(query);
+    } else {
+        loadRankings(category);
+    }
+}
+
+function loadRankings(category, append = false) {
+    if (!append) {
+        currentOffset = 0;
+        currentCategory = category;
+        allPlayers = [];
+    }
+
+    fetch(`/rankings?category=${category}&offset=${currentOffset}&limit=${limit}`)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('데이터를 불러오는 중 문제가 발생했습니다.');
+            }
+            return response.json();
+        })
+        .then((data) => {
+            if (data.length === 0 && append) {
+                return;
+            }
+
+            allPlayers = append ? [...allPlayers, ...data] : data;
+            updateTable(data, append);
+            currentOffset += limit;
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('데이터를 불러오는 데 실패했습니다.');
+        });
+}
+
+function getCategoryDisplayName(category) {
+    const categoryDisplayNames = {
+        win_order: "승리",
+        loss_order: "패배",
+        rate_order: "승률",
+        match_order: "승률",
+        opponent_order: "상대",
+        achieve_order: "업적",
+    };
+    return categoryDisplayNames[category];
+}
+
+function updateTable(data, append) {
+    const tableBody = document.getElementById("table-body");
+    const dynamicColumn = document.getElementById("dynamic-column");
+    dynamicColumn.textContent = getCategoryDisplayName(currentCategory);
+
+    if (!append) {
+        tableBody.innerHTML = '';
+    }
+
+    data.forEach((player) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td class="border border-gray-300 p-2">${player.current_rank || ""}</td>
+            <td class="border border-gray-300 p-2">${player.rank || "무"}</td>
+            <td class="border border-gray-300 p-2">
+                <a href="/player/${player.id}">${player.name || " "}</a>
+            </td>
+            <td class="border border-gray-300 p-2">${player.category_value}</td>
+            <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+function loadMore() {
+    loadRankings(currentCategory, true);
+}
+
+function searchByName(query) {
+    const tableBody = document.getElementById("table-body");
+
+    if (!query.trim()) {
+        loadRankings(currentCategory, false);
+        return;
+    }
+
+    fetch(`/search_players?query=${encodeURIComponent(query)}&category=${currentCategory}`)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("검색 데이터를 불러오는 중 문제가 발생했습니다.");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            tableBody.innerHTML = '';
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5">검색 결과가 없습니다.</td></tr>';
+                return;
+            }
+
+            data.forEach((player) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td class="border border-gray-300 p-2">${player.current_rank || ""}</td>
+                    <td class="border border-gray-300 p-2">${player.rank || "무"}</td>
+                    <td class="border border-gray-300 p-2">
+                        <a href="/player/${player.id}">${player.name || " "}</a>
+                    </td>
+                    <td class="border border-gray-300 p-2">${player.category_value}</td>
+                    <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            tableBody.innerHTML = '<tr><td colspan="5">검색 결과를 가져오지 못했습니다.</td></tr>';
+        });
 }

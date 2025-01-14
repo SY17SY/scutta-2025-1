@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>기타 설정</title>
+    <title>관리 - 기타 설정</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
     <link rel="stylesheet" href="../static/css/style.css">
@@ -15,7 +15,6 @@
         <div class="text-sm">{{ config['GLOBAL_TEXTS']['semester'] }}</div>
     </header>
 
-    <!-- Index Bar -->
     <div class="index-bar">
         <div class="index-item" onclick="navigateTo('approval.html')">경기 승인</div>
         <div class="index-item" onclick="navigateTo('assignment.html')">부수 배정</div>
@@ -23,7 +22,6 @@
     </div>
 
     <div class="container mx-auto p-4">
-        <!-- Content -->
         <div class="content mb-8">
             <h2 class="text-lg font-bold mb-4">선수 등록</h2>
             <textarea id="player-input" class="text-area" placeholder="이름을 스페이스바로 구분하여 입력하세요."></textarea>
