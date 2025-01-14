@@ -7,6 +7,7 @@ seoul_time = datetime.now(ZoneInfo("Asia/Seoul"))
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
+    is_valid = db.Column(db.Boolean, default=True)
     previous_rank = db.Column(db.Integer, default=None)
     rank_change = db.Column(db.String(10), default=None)  # New/Up/Down
     rank = db.Column(db.Integer, default=None)

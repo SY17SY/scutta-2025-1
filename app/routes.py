@@ -169,7 +169,7 @@ def rankings():
     primary_order = getattr(Player, category)
     secondary_order = secondary_criteria.get(category)
     
-    players = Player.query.order_by(primary_order, secondary_order).offset(offset).limit(limit).all()
+    players = Player.query.filter(Player.is_valid == True).order_by(primary_order, secondary_order).offset(offset).limit(limit).all()
 
     response = []
     for player in players:
@@ -328,7 +328,7 @@ def register_players():
 
 @current_app.route('/get_players', methods=['GET'])
 def get_players():
-    players = Player.query.order_by(Player.name).all()
+    players = Player.query.order_by(Player.is_valid.desc(), Player.name).all()
     response = []
     for player in players:
         response.append({
@@ -338,8 +338,22 @@ def get_players():
             'rate_count': player.rate_count,
             'match_count': player.match_count,
             'achieve_count': player.achieve_count
+            'is_valid': player.is_valid
         })
     return jsonify(response)
+
+@current_app.route('/toggle_validity', methods=['POST'])
+def toggle_validity():
+    ids = request.json.get('ids', [])
+    if not ids:
+        return jsonify({'success': False, 'message': '선택된 항목이 없습니다.'}), 400
+
+    players = Player.query.filter(Player.id.in_(ids)).all()
+    for player in players:
+        player.is_valid = not player.is_valid
+
+    db.session.commit()
+    return jsonify({'success': True})
 
 @current_app.route('/delete_players', methods=['POST'])
 def delete_players():
@@ -359,7 +373,7 @@ def check_players():
         player_names.add(match['winner'])
         player_names.add(match['loser'])
 
-    existing_players = {player.name for player in Player.query.filter(Player.name.in_(player_names)).all()}
+    existing_players = {player.name for player in Player.query.filter(Player.name.in_(player_names), Player.is_valid == True).all()}
     unknown_players = list(player_names - existing_players)
 
     return jsonify({'unknownPlayers': unknown_players})
@@ -367,7 +381,7 @@ def check_players():
 @current_app.route('/update_ranks', methods=['POST'])
 def update_ranks():
     try:
-        players = Player.query.filter(Player.match_count >= 3).order_by(
+        players = Player.query.filter(Player.is_valid == True, Player.match_count >= 3).order_by(
             Player.rate_count.desc(), Player.match_count.desc()
         ).all()
 
@@ -396,7 +410,7 @@ def update_ranks():
         cutline = []
         for rank in range(1, 10):
             lowest_player = (
-                Player.query.filter_by(previous_rank=rank)
+                Player.query.filter(Player.is_valid == True, Player.previous_rank == rank)
                 .order_by(Player.rate_count)
                 .first()
             )
@@ -405,7 +419,7 @@ def update_ranks():
             else:
                 cutline.append({'rank': rank, 'rate_count': 0})
 
-        for player in Player.query.filter(Player.match_count < 15).all():
+        for player in Player.query.filter(Player.is_valid == True, Player.match_count < 15).all():
             player.previous_rank = None
 
         for player in players:
@@ -440,7 +454,7 @@ def update_ranks():
                 <td class="border border-gray-300 p-2">{p.rank_change or ''}</td>
             </tr>
             """
-            for p in Player.query.order_by(Player.rate_count.desc()).filter(Player.rank_change.isnot(None)).all()
+            for p in Player.query.filter(Player.is_valid == True, Player.rank_change.isnot(None)).order_by(Player.rate_count.desc()).all()
         ]
 
         html_content = f"""
@@ -478,7 +492,7 @@ def update_ranks():
         log = UpdateLog(title=str(current_time.date()), html_content=html_content, timestamp=current_time)
         db.session.add(log)
 
-        for player in Player.query.filter(Player.rank_change.isnot(None)).all():
+        for player in Player.query.filter(Player.is_valid == True, Player.rank_change.isnot(None)).all():
             player.rank = player.previous_rank
             
         for player in Player.query.all():
@@ -646,7 +660,7 @@ def create_league():
 
     for name in players:
         player = Player.query.filter_by(name=name).first()
-        if not player:
+        if not player or not player.is_valid:
             return jsonify({'success': False, 'error': f'선수 "{name}"를 찾을 수 없습니다.'}), 400
 
     new_league = League(

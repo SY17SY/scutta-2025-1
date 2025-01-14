@@ -34,8 +34,10 @@ function loadPlayers() {
         .then(data => {
             const tbody = document.getElementById('player-table-body');
             tbody.innerHTML = '';
+            data.sort((a, b) => b.is_valid - a.is_valid);
             data.forEach(player => {
                 const row = document.createElement('tr');
+                row.className = player.is_valid ? '' : 'text-gray-500';
                 row.innerHTML = `
                     <td><input type="checkbox" class="row-checkbox" data-id="${player.id}"></td>
                     <td>
@@ -77,6 +79,30 @@ function addAchievement(playerId) {
         .catch(error => console.error('Error updating achievements:', error));
 }
 
+function toggleValidity() {
+    const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.dataset.id);
+
+    if (selectedIds.length === 0) {
+        alert('유효/무효 상태를 변경할 항목을 선택해주세요.');
+        return;
+    }
+
+    fetch('/toggle_validity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('선수의 유효/무효 상태가 변경되었습니다.');
+                loadPlayers();
+            } else {
+                alert('유효/무효 상태 변경 중 문제가 발생했습니다.');
+            }
+        })
+        .catch(error => console.error('Error toggling validity:', error));
+}
 
 function deleteSelectedPlayers() {
     const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked'))
