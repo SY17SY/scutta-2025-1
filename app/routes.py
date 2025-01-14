@@ -106,7 +106,7 @@ def update_player_orders():
     ]
 
     for order_field, primary_criteria in categories:
-        players = Player.query.order_by(primary_criteria).all()
+        players = Player.query.filter(Player.is_valid == True).order_by(primary_criteria).all()
         
         current_rank = 0
         previous_primary_value = None
@@ -353,6 +353,7 @@ def toggle_validity():
         player.is_valid = not player.is_valid
 
     db.session.commit()
+    update_player_orders()
     return jsonify({'success': True})
 
 @current_app.route('/delete_players', methods=['POST'])
@@ -362,7 +363,7 @@ def delete_players():
 
     Player.query.filter(Player.id.in_(ids)).delete(synchronize_session=False)
     db.session.commit()
-
+    update_player_orders()
     return jsonify({'success': True})
 
 @current_app.route('/check_players', methods=['POST'])
