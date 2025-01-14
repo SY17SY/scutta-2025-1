@@ -337,7 +337,7 @@ def get_players():
             'win_count': player.win_count,
             'rate_count': player.rate_count,
             'match_count': player.match_count,
-            'achieve_count': player.achieve_count
+            'achieve_count': player.achieve_count,
             'is_valid': player.is_valid
         })
     return jsonify(response)
