@@ -787,31 +787,66 @@ def view_betting(betting_id):
 
     return render_template('betting_detail.html', betting=betting, participants=participants)
 
-@current_app.route('/create_betting', methods=['POST'])
-def create_betting():
+@current_app.route('/get_achieve_counts', methods=['POST'])
+def get_achieve_counts():
     data = request.get_json()
-    if not data or 'players' not in data or 'participants' not in data:
-        return jsonify({'error': '올바른 데이터를 제공해주세요.'}), 400
-
     players = data.get('players', [])
     participants = data.get('participants', [])
 
     if len(players) != 2:
         return jsonify({'error': '정확히 2명의 선수를 입력해야 합니다.'}), 400
 
-    for name in players:
-        player = Player.query.filter_by(name=name).first()
-        if not player or not player.is_valid:
-            return jsonify({'success': False, 'error': f'선수 "{name}"를 찾을 수 없습니다.'}), 400
+    p1 = Player.query.filter_by(name=players[0]).first()
+    p2 = Player.query.filter_by(name=players[1]).first()
+
+    if not p1 or not p2:
+        return jsonify({'error': '선수를 찾을 수 없습니다.'}), 400
+
+    participant_data = []
+    for participant_name in participants:
+        participant = Player.query.filter_by(name=participant_name.strip()).first()
+        if participant:
+            participant_data.append({
+                'name': participant.name,
+                'achieve_count': participant.achieve_count
+            })
+        else:
+            return jsonify({'error': f'베팅 참가자 "{participant_name}"를 찾을 수 없습니다.'}), 400
+
+    return jsonify({
+        'p1': {'name': p1.name, 'achieve_count': p1.achieve_count},
+        'p2': {'name': p2.name, 'achieve_count': p2.achieve_count},
+        'participants': participant_data
+    })
+
+@current_app.route('/create_betting', methods=['POST'])
+def create_betting():
+    data = request.get_json()
+    players = data.get('players', [])
+    participants = data.get('participants', [])
+    point = data.get('point')
+
+    if len(players) != 2:
+        return jsonify({'error': '정확히 2명의 선수를 입력해야 합니다.'}), 400
+
+    if not isinstance(point, int) or point <= 0:
+        return jsonify({'error': '유효한 점수를 입력하세요.'}), 400
+
+    p1 = Player.query.filter_by(name=players[0]).first()
+    p2 = Player.query.filter_by(name=players[1]).first()
+
+    if not p1 or not p2:
+        return jsonify({'error': '선수를 찾을 수 없습니다.'}), 400
 
     new_betting = Betting(
-        p1_id=Player.query.filter_by(name=players[0]).first().id,
-        p1_name=players[0],
-        p2_id=Player.query.filter_by(name=players[1]).first().id,
-        p2_name=players[1]
+        p1_id=p1.id,
+        p1_name=p1.name,
+        p2_id=p2.id,
+        p2_name=p2.name,
+        point=point
     )
     db.session.add(new_betting)
-    db.session.commit()
+    db.session.flush()  # Commit 전 betting.id를 얻기 위해 flush
 
     for participant_name in participants:
         participant = BettingParticipant(

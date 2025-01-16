@@ -80,6 +80,7 @@ class Betting(db.Model):
     p1_name = db.Column(db.String(100), nullable=False)
     p2_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
     p2_name = db.Column(db.String(100), nullable=False)
+    point = db.Column(db.Integer, nullable=False)
 
     participants = db.relationship('BettingParticipant', backref='betting', cascade='all, delete-orphan')
 
@@ -87,3 +88,4 @@ class BettingParticipant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     betting_id = db.Column(db.Integer, db.ForeignKey('betting.id'), nullable=False)
     participant_name = db.Column(db.String(100), nullable=False)
+    winner_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=True)
