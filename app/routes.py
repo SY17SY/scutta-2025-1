@@ -2,7 +2,7 @@ from flask import render_template, current_app
 from flask import request, jsonify
 from app import db
 from sqlalchemy import and_
-from app.models import Match, Player, UpdateLog, League
+from app.models import Match, Player, UpdateLog, League, Betting, BettingParticipant
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -759,3 +759,63 @@ def delete_league(league_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': f'리그 삭제 중 오류 발생: {str(e)}'}), 500
+    
+    
+# betting.js
+
+@current_app.route('/get_bettings', methods=['GET'])
+def get_bettings():
+    bettings = Betting.query.order_by(Betting.id.desc()).all()
+    response = []
+    for betting in bettings:
+        response.append({
+            'id': betting.id,
+            'p1': betting.p1_name,
+            'p2': betting.p2_name,
+            'participants': [p.participant_name for p in betting.participants]
+        })
+    return jsonify(response)
+
+@current_app.route('/betting/<int:betting_id>', methods=['GET'])
+def view_betting(betting_id):
+    betting = Betting.query.get_or_404(betting_id)
+    participants = [p.participant_name for p in betting.participants]
+
+    return render_template('betting_detail.html', betting=betting, participants=participants)
+
+@current_app.route('/create_betting', methods=['POST'])
+def create_betting():
+    data = request.get_json()
+    if not data or 'players' not in data or 'participants' not in data:
+        return jsonify({'error': '올바른 데이터를 제공해주세요.'}), 400
+
+    players = data.get('players', [])
+    participants = data.get('participants', [])
+
+    if len(players) != 2:
+        return jsonify({'error': '정확히 2명의 선수를 입력해야 합니다.'}), 400
+
+    for name in players:
+        player = Player.query.filter_by(name=name).first()
+        if not player or not player.is_valid:
+            return jsonify({'success': False, 'error': f'선수 "{name}"를 찾을 수 없습니다.'}), 400
+
+    new_betting = Betting(
+        p1_id=Player.query.filter_by(name=players[0]).first().id,
+        p1_name=players[0],
+        p2_id=Player.query.filter_by(name=players[1]).first().id,
+        p2_name=players[1]
+    )
+    db.session.add(new_betting)
+    db.session.commit()
+
+    for participant_name in participants:
+        participant = BettingParticipant(
+            betting_id=new_betting.id,
+            participant_name=participant_name.strip()
+        )
+        db.session.add(participant)
+
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': '베팅이 생성되었습니다.', 'betting_id': new_betting.id})

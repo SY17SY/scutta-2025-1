@@ -73,3 +73,17 @@ class League(db.Model):
     p5p2 = db.Column(db.Integer, default=None)
     p5p3 = db.Column(db.Integer, default=None)
     p5p4 = db.Column(db.Integer, default=None)
+
+class Betting(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    p1_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    p1_name = db.Column(db.String(100), nullable=False)
+    p2_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    p2_name = db.Column(db.String(100), nullable=False)
+
+    participants = db.relationship('BettingParticipant', backref='betting', cascade='all, delete-orphan')
+
+class BettingParticipant(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    betting_id = db.Column(db.Integer, db.ForeignKey('betting.id'), nullable=False)
+    participant_name = db.Column(db.String(100), nullable=False)
