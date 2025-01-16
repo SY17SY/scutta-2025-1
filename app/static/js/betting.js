@@ -45,14 +45,14 @@ function createBetting() {
             }
 
             const message = `
-            선수 정보:
-            ${data.p1.name} 업적: ${data.p1.achieve_count}
-            ${data.p2.name} 업적: ${data.p2.achieve_count}
+선수 정보:
+${data.p1.name} 업적: ${data.p1.achieve_count}
+${data.p2.name} 업적: ${data.p2.achieve_count}
 
-            참가자 정보:
-            ${data.participants.map(p => `${p.name} 업적: ${p.achieve_count}`).join('\n')}
+참가자 정보:
+${data.participants.map(p => `${p.name} 업적: ${p.achieve_count}`).join('\n')}
 
-            베팅할 점수를 입력하세요.
+베팅할 점수를 입력하세요.
             `;
 
             const point = parseInt(prompt(message), 10);

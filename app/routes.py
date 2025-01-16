@@ -846,7 +846,7 @@ def create_betting():
         point=point
     )
     db.session.add(new_betting)
-    db.session.flush()  # Commit 전 betting.id를 얻기 위해 flush
+    db.session.flush()
 
     for participant_name in participants:
         participant = BettingParticipant(
@@ -858,3 +858,52 @@ def create_betting():
     db.session.commit()
 
     return jsonify({'success': True, 'message': '베팅이 생성되었습니다.', 'betting_id': new_betting.id})
+
+
+# betting_detail.js
+
+@current_app.route('/betting/<int:betting_id>/details', methods=['GET'])
+def betting_details(betting_id):
+    betting = Betting.query.get_or_404(betting_id)
+
+    # 최근 전적 가져오기
+    matches = Match.query.filter(
+        ((Match.winner == betting.p1_id) & (Match.loser == betting.p2_id)) |
+        ((Match.winner == betting.p2_id) & (Match.loser == betting.p1_id))
+    ).order_by(Match.timestamp.desc()).limit(10).all()
+
+    recent_matches = []
+    p1_wins, p2_wins = 0, 0
+    for match in matches:
+        if match.winner == betting.p1_id:
+            p1_wins += 1
+            score = match.score
+            recent_matches.append({'p1_result': '승리', 'score': score, 'p2_result': '패배'})
+        else:
+            p2_wins += 1
+            score = ':'.join(reversed(match.score.split(':')))
+            recent_matches.append({'p1_result': '패배', 'score': score, 'p2_result': '승리'})
+
+    win_rate = {
+        'p1_wins': p1_wins,
+        'p2_wins': p2_wins,
+        'p1_rate': round((p1_wins / len(matches)) * 100, 2) if matches else 0
+    }
+
+    participants = [
+        {'id': participant.id, 'name': participant.name}
+        for participant in betting.participants
+    ]
+
+    return jsonify({
+        'recentMatches': recent_matches,
+        'winRate': win_rate,
+        'participants': participants
+    })
+
+@current_app.route('/betting/<int:betting_id>/delete', methods=['DELETE'])
+def delete_betting(betting_id):
+    betting = Betting.query.get_or_404(betting_id)
+    db.session.delete(betting)
+    db.session.commit()
+    return jsonify({'success': True})
