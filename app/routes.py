@@ -25,6 +25,10 @@ def index():
 def league():
     return render_template('league.html')
 
+@current_app.route('/betting.html')
+def betting():
+    return render_template('betting.html')
+
 @current_app.route('/password.html')
 def password():
     return render_template('password.html')
