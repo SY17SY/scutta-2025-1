@@ -913,7 +913,8 @@ def betting_details(betting_id):
 
     participants = [{
         'name': p.participant_name,
-        'id': p.participant_id
+        'id': p.participant_id,
+        'winner_id': p.winner_id
     } for p in betting.participants]
 
     return jsonify({
@@ -927,4 +928,20 @@ def delete_betting(betting_id):
     betting = Betting.query.get_or_404(betting_id)
     db.session.delete(betting)
     db.session.commit()
+    return jsonify({'success': True})
+
+@current_app.route('/update_betting_participants/<int:betting_id>', methods=['POST'])
+def update_betting_participants(betting_id):
+    data = request.get_json()
+    winner_updates = data.get('winnerUpdates', [])
+
+    for update in winner_updates:
+        participant = BettingParticipant.query.filter_by(betting_id=betting_id, participant_name=update['participantId']).first()
+        if participant:
+            if update['winnerId'] == 'p1':
+                participant.winner_id = betting.p1_id
+            elif update['winnerId'] == 'p2':
+                participant.winner_id = betting.p2_id
+            db.session.commit()
+
     return jsonify({'success': True})

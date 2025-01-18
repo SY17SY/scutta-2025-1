@@ -29,17 +29,22 @@ function populateWinRate(winRate) {
 
 function populateBettingParticipants(participants) {
     const tbody = document.getElementById('betting-participants');
-    tbody.innerHTML = participants.map(participant => `
-        <tr>
-            <td class="border border-gray-300 p-2 text-center">
-                <input type="radio" name="betting-${participant.id}" value="p1-${participant.id}" />
-            </td>
-            <td class="border border-gray-300 p-2">${participant.name}</td>
-            <td class="border border-gray-300 p-2 text-center">
-                <input type="radio" name="betting-${participant.id}" value="p2-${participant.id}" />
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = participants.map(participant => {
+        const isP1Selected = participant.winner_id === 'p1';
+        const isP2Selected = participant.winner_id === 'p2';
+
+        return `
+            <tr>
+                <td class="border border-gray-300 p-2 text-center">
+                    <input type="radio" name="betting-${participant.id}" value="p1-${participant.id}" ${isP1Selected ? 'checked' : ''} />
+                </td>
+                <td class="border border-gray-300 p-2">${participant.name}</td>
+                <td class="border border-gray-300 p-2 text-center">
+                    <input type="radio" name="betting-${participant.id}" value="p2-${participant.id}" ${isP2Selected ? 'checked' : ''} />
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function deleteBetting(bettingId) {
@@ -57,7 +62,47 @@ function deleteBetting(bettingId) {
 }
 
 function saveBetting(bettingId) {
-    // Save logic (to be implemented based on requirements)
+    const participants = document.querySelectorAll(`#betting-participants tr`);
+    const winnerUpdates = [];
+
+    participants.forEach(participantRow => {
+        const participantId = participantRow.querySelector('td:nth-child(2)').textContent.trim();
+        const p1Radio = participantRow.querySelector(`input[name="betting-${participantId}"][value="p1-${participantId}"]`);
+        const p2Radio = participantRow.querySelector(`input[name="betting-${participantId}"][value="p2-${participantId}"]`);
+
+        let winnerId = null;
+
+        if (p1Radio.checked) {
+            winnerId = "p1";
+        } else if (p2Radio.checked) {
+            winnerId = "p2";
+        }
+
+        if (winnerId) {
+            winnerUpdates.push({
+                participantId: participantId,
+                winnerId: winnerId
+            });
+        }
+    });
+
+    fetch(`/update_betting_participants/${bettingId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ winnerUpdates })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('베팅 결과가 저장되었습니다.');
+            } else {
+                alert('저장 실패: ' + (data.error || '알 수 없는 오류'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('네트워크 오류가 발생했습니다.');
+        });
 }
 
 function submitBetting(bettingId) {
