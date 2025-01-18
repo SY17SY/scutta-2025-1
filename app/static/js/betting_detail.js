@@ -31,7 +31,13 @@ function populateBettingParticipants(participants) {
     const tbody = document.getElementById('betting-participants');
     tbody.innerHTML = participants.map(participant => `
         <tr>
+            <td class="border border-gray-300 p-2 text-center">
+                <input type="radio" name="bet-${participant.id}" value="p1" />
+            </td>
             <td class="border border-gray-300 p-2">${participant.name}</td>
+            <td class="border border-gray-300 p-2 text-center">
+                <input type="radio" name="bet-${participant.id}" value="p2" />
+            </td>
         </tr>
     `).join('');
 }

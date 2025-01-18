@@ -900,11 +900,14 @@ def betting_details(betting_id):
     for match in matches:
         if match.winner == betting.p1_id:
             p1_wins += 1
+            score = match.score
         else:
             p2_wins += 1
+            original_score = match.score.split(':')
+            score = f"{original_score[1]}:{original_score[0]}"
         recent_matches.append({
             'p1_score': match.winner_name if match.winner == betting.p1_id else match.loser_name,
-            'score': match.score,
+            'score': score,
             'p2_score': match.loser_name if match.winner == betting.p1_id else match.winner_name
         })
 
