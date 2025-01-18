@@ -36,11 +36,11 @@ function populateBettingParticipants(participants, p1Id, p2Id) {
         return `
             <tr>
                 <td class="border border-gray-300 p-2 text-center">
-                    <input type="radio" name="betting-${participant.participant_id}" value="${p1Id}-${participant.participant_id}" ${isP1Selected ? 'checked' : ''} />
+                    <input type="radio" name="betting-${participant.id}" value="${p1Id}-${participant.id}" ${isP1Selected ? 'checked' : ''} />
                 </td>
                 <td class="border border-gray-300 p-2">${participant.name}</td>
                 <td class="border border-gray-300 p-2 text-center">
-                    <input type="radio" name="betting-${participant.participant_id}" value="${p2Id}-${participant.participant_id}" ${isP2Selected ? 'checked' : ''} />
+                    <input type="radio" name="betting-${participant.id}" value="${p2Id}-${participant.id}" ${isP2Selected ? 'checked' : ''} />
                 </td>
             </tr>
         `;
