@@ -890,7 +890,6 @@ def create_betting():
 def betting_details(betting_id):
     betting = Betting.query.get_or_404(betting_id)
 
-    # 최근 전적 가져오기
     matches = Match.query.filter(
         ((Match.winner == betting.p1_id) & (Match.loser == betting.p2_id)) |
         ((Match.winner == betting.p2_id) & (Match.loser == betting.p1_id))
@@ -901,27 +900,19 @@ def betting_details(betting_id):
     for match in matches:
         if match.winner == betting.p1_id:
             p1_wins += 1
-            score = match.score
-            recent_matches.append({'p1_result': '승리', 'score': score, 'p2_result': '패배'})
         else:
             p2_wins += 1
-            score = ':'.join(reversed(match.score.split(':')))
-            recent_matches.append({'p1_result': '패배', 'score': score, 'p2_result': '승리'})
+        recent_matches.append({
+            'p1_score': match.winner_name if match.winner == betting.p1_id else match.loser_name,
+            'score': match.score,
+            'p2_score': match.loser_name if match.winner == betting.p1_id else match.winner_name
+        })
 
-    win_rate = {
-        'p1_wins': p1_wins,
-        'p2_wins': p2_wins,
-        'p1_rate': round((p1_wins / len(matches)) * 100, 2) if matches else 0
-    }
-
-    participants = [
-        {'id': participant.id, 'name': participant.name}
-        for participant in betting.participants
-    ]
+    participants = [{'name': p.participant_name} for p in betting.participants]
 
     return jsonify({
         'recentMatches': recent_matches,
-        'winRate': win_rate,
+        'winRate': {'p1_wins': p1_wins, 'p2_wins': p2_wins},
         'participants': participants
     })
 

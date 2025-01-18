@@ -1,6 +1,6 @@
-document.addEventListener('DOMContentLoaded', loadBettingDetails);
+document.addEventListener('DOMContentLoaded', () => {
+    const bettingId = window.location.pathname.split('/')[2];
 
-function loadBettingDetails() {
     fetch(`/betting/${bettingId}/details`)
         .then(response => response.json())
         .then(data => {
@@ -9,15 +9,15 @@ function loadBettingDetails() {
             populateBettingParticipants(data.participants);
         })
         .catch(error => console.error('Error loading betting details:', error));
-}
+});
 
 function populateRecentMatches(matches) {
     const tbody = document.getElementById('recent-matches');
     tbody.innerHTML = matches.map(match => `
         <tr>
-            <td class="border border-gray-300 p-2">${match.p1_result}</td>
+            <td class="border border-gray-300 p-2">${match.p1_score}</td>
             <td class="border border-gray-300 p-2">${match.score}</td>
-            <td class="border border-gray-300 p-2">${match.p2_result}</td>
+            <td class="border border-gray-300 p-2">${match.p2_score}</td>
         </tr>
     `).join('');
 }
@@ -31,13 +31,7 @@ function populateBettingParticipants(participants) {
     const tbody = document.getElementById('betting-participants');
     tbody.innerHTML = participants.map(participant => `
         <tr>
-            <td class="border border-gray-300 p-2 text-center">
-                <input type="radio" name="bet-${participant.id}" value="p1" />
-            </td>
             <td class="border border-gray-300 p-2">${participant.name}</td>
-            <td class="border border-gray-300 p-2 text-center">
-                <input type="radio" name="bet-${participant.id}" value="p2" />
-            </td>
         </tr>
     `).join('');
 }

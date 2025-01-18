@@ -44,22 +44,21 @@ function createBetting() {
                 return;
             }
 
-            const message = `
-선수 정보:
-${data.p1.name} 업적: ${data.p1.betting_count}
-${data.p2.name} 업적: ${data.p2.betting_count}
+            const minBettingPoint = Math.min(
+                data.p1.betting_count,
+                data.p2.betting_count,
+                ...data.participants.map(p => p.betting_count)
+            );
 
-참가자 정보:
-${data.participants.map(p => `${p.name} 업적: ${p.betting_count}`).join('\n')}
-
-베팅할 점수를 입력하세요.
-            `;
-
-            const point = parseInt(prompt(message), 10);
-            if (isNaN(point) || point <= 0) {
-                alert("유효한 정수를 입력하세요.");
-                return;
-            }
+            let point;
+            do {
+                point = parseInt(prompt(`베팅 점수를 입력하세요. (최소 ${minBettingPoint} 이하)`), 10);
+                if (isNaN(point) || point <= 0) {
+                    alert("유효한 정수를 입력하세요.");
+                } else if (point > minBettingPoint) {
+                    alert(`입력한 점수가 너무 큽니다. ${minBettingPoint} 이하로 입력하세요.`);
+                }
+            } while (isNaN(point) || point <= 0 || point > minBettingPoint);
 
             fetch('/create_betting', {
                 method: 'POST',

@@ -21,6 +21,11 @@
     </header>
 
     <div class="container mx-auto p-4">
+        <h2 class="text-lg font-bold mb-4">베팅 상세 정보</h2>
+        <p>베팅 포인트: {{ betting.point * (2 + participants|length) }}</p>
+    </div>
+
+    <div class="container mx-auto p-4">
         <h2 class="text-lg font-bold mb-4">최근 전적</h2>
         <table class="table w-full border-collapse border border-gray-300 mb-4">
             <thead>

@@ -83,6 +83,7 @@ class Betting(db.Model):
     p2_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
     p2_name = db.Column(db.String(100), nullable=False)
     point = db.Column(db.Integer, nullable=False)
+    approved = db.Column(db.Boolean, default=False)
 
     participants = db.relationship('BettingParticipant', backref='betting', cascade='all, delete-orphan')
 
