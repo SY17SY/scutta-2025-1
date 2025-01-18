@@ -889,6 +889,9 @@ def create_betting():
 def betting_details(betting_id):
     betting = Betting.query.get_or_404(betting_id)
 
+    p1_id = betting.p1_id
+    p2_id = betting.p2_id
+    
     matches = Match.query.filter(
         ((Match.winner == betting.p1_id) & (Match.loser == betting.p2_id)) |
         ((Match.winner == betting.p2_id) & (Match.loser == betting.p1_id))
@@ -919,7 +922,9 @@ def betting_details(betting_id):
     return jsonify({
         'recentMatches': recent_matches,
         'winRate': {'p1_wins': p1_wins, 'p2_wins': p2_wins},
-        'participants': participants
+        'participants': participants,
+        'p1_id': p1_id,
+        'p2_id': p2_id
     })
 
 @current_app.route('/betting/<int:betting_id>/delete', methods=['DELETE'])
