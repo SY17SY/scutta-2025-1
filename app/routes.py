@@ -940,16 +940,14 @@ def update_betting(betting_id):
     try:
         for participant_data in participants:
             participant_id = participant_data.get('id')
-            winner = participant_data.get('winner')
+            winner_id = participant_data.get('winner')
 
             betting_participant = BettingParticipant.query.filter_by(
                 betting_id=betting_id, participant_id=participant_id
             ).first()
 
             if betting_participant:
-                betting_participant.winner_id = (
-                    betting_participant.betting.p1_id if winner == 'p1' else betting_participant.betting.p2_id
-                )
+                betting_participant.winner_id = winner_id
         
         db.session.commit()
         return jsonify({'success': True, 'message': '베팅 데이터가 업데이트되었습니다.'})

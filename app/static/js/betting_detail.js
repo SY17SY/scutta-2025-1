@@ -36,11 +36,11 @@ function populateBettingParticipants(participants, p1Id, p2Id) {
         return `
             <tr>
                 <td class="border border-gray-300 p-2 text-center">
-                    <input type="radio" name="betting-${participant.id}" value="p1-${participant.id}" ${isP1Selected ? 'checked' : ''} />
+                    <input type="radio" name="betting-${participant.id}" value="${p1Id}-${participant.id}" ${isP1Selected ? 'checked' : ''} />
                 </td>
                 <td class="border border-gray-300 p-2">${participant.name}</td>
                 <td class="border border-gray-300 p-2 text-center">
-                    <input type="radio" name="betting-${participant.id}" value="p2-${participant.id}" ${isP2Selected ? 'checked' : ''} />
+                    <input type="radio" name="betting-${participant.id}" value="${p2Id}-${participant.id}" ${isP2Selected ? 'checked' : ''} />
                 </td>
             </tr>
         `;
@@ -66,7 +66,7 @@ function saveBetting(bettingId) {
         const [winner, id] = input.value.split('-');
         return {
             id: parseInt(id, 10),
-            winner: winner === 'p1' ? 'p1' : 'p2'
+            winner: winner
         };
     });
 
