@@ -32,11 +32,11 @@ function populateBettingParticipants(participants) {
     tbody.innerHTML = participants.map(participant => `
         <tr>
             <td class="border border-gray-300 p-2 text-center">
-                <input type="radio" name="betting" value="p1-${participant.id}" />
+                <input type="radio" name="betting-${participant.id}" value="p1-${participant.id}" />
             </td>
             <td class="border border-gray-300 p-2">${participant.name}</td>
             <td class="border border-gray-300 p-2 text-center">
-                <input type="radio" name="betting" value="p2-${participant.id}" />
+                <input type="radio" name="betting-${participant.id}" value="p2-${participant.id}" />
             </td>
         </tr>
     `).join('');

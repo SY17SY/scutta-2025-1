@@ -15,16 +15,14 @@
 </head>
 <body>
     <header class="flex justify-between items-center p-4 bg-white shadow">
-        <button class="text-xl" onclick="navigateTo('/')">&larr;</button>
+        <button class="text-xl" onclick="history.back()">&larr;</button>
         <h1 class="text-lg font-bold">{{ betting.p1_name }} vs {{ betting.p2_name }}</h1>
         <div class="text-sm">{{ config['GLOBAL_TEXTS']['semester'] }}</div>
     </header>
 
     <div class="container mx-auto p-4">
         <h2 class="text-lg font-bold mb-4">베팅 포인트: {{ betting.point * (2 + participants|length) }}</h2>
-    </div>
 
-    <div class="container mx-auto p-4">
         <h2 class="text-lg font-bold mb-4">최근 전적</h2>
         <table class="table w-full border-collapse border border-gray-300 mb-4">
             <thead>

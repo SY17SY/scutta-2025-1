@@ -82,7 +82,11 @@ ${data.participants.map(p => `${p.name} 업적: ${p.betting_count}`).join('\n')}
 
             let point;
             do {
-                point = parseInt(prompt(`베팅 점수를 입력하세요. (최소 ${minBettingPoint} 이하)`), 10);
+                if (input === null) {
+                    alert("베팅 생성이 취소되었습니다.");
+                    return;
+                }
+                point = parseInt(prompt(`${playerInfo}\n베팅 점수를 입력하세요. (최소 ${minBettingPoint} 이하)`), 10);
                 if (isNaN(point) || point <= 0) {
                     alert("유효한 정수를 입력하세요.");
                 } else if (point > minBettingPoint) {
