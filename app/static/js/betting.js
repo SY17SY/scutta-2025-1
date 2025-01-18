@@ -19,6 +19,27 @@ function loadBetting() {
         .catch(error => console.error('Error:', error));
 }
 
+function showBettingPrompt(data) {
+    const promptMessage = `
+선수 정보:
+${data.p1.name} 업적: ${data.p1.betting_count}
+${data.p2.name} 업적: ${data.p2.betting_count}
+
+참가자 정보:
+${data.participants.map(p => `${p.name} 업적: ${p.betting_count}`).join('\n')}
+
+베팅할 점수를 입력하세요.
+    `;
+
+    const point = prompt(promptMessage);
+
+    if (point && !isNaN(point) && Number(point) > 0) {
+        createBetting(Number(point));
+    } else {
+        alert('유효한 점수를 입력하세요.');
+    }
+}
+
 function createBetting() {
     const players = prompt("선수 2명을 입력하세요 (공백으로 구분)").trim().split(" ");
     if (players.length !== 2) {
@@ -43,6 +64,15 @@ function createBetting() {
                 alert(data.error);
                 return;
             }
+
+            const playerInfo = `
+선수 정보:
+${data.p1.name} 업적: ${data.p1.betting_count}
+${data.p2.name} 업적: ${data.p2.betting_count}
+
+참가자 정보:
+${data.participants.map(p => `${p.name} 업적: ${p.betting_count}`).join('\n')}
+            `;
 
             const minBettingPoint = Math.min(
                 data.p1.betting_count,
