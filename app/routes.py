@@ -799,15 +799,14 @@ def get_bettings():
         response.append({
             'id': betting.id,
             'p1': betting.p1_name,
-            'p2': betting.p2_name,
-            'participants': [p.participant_name for p in betting.participants]
+            'p2': betting.p2_name
         })
     return jsonify(response)
 
 @current_app.route('/betting/<int:betting_id>', methods=['GET'])
 def view_betting(betting_id):
     betting = Betting.query.get_or_404(betting_id)
-    participants = [p.participant_name for p in betting.participants]
+    participants = [p.participant_id for p in betting.participants]
 
     return render_template('betting_detail.html', betting=betting, participants=participants)
 
@@ -824,15 +823,15 @@ def get_betting_counts():
         return jsonify({'error': '선수를 찾을 수 없습니다.'}), 400
 
     participant_data = []
-    for participant_name in participants:
-        participant = Player.query.filter_by(name=participant_name.strip()).first()
+    for participant_id in participants:
+        participant = Player.query.filter_by(id=participant_id).first()
         if participant:
             participant_data.append({
                 'name': participant.name,
                 'betting_count': participant.betting_count
             })
         else:
-            return jsonify({'error': f'베팅 참가자 "{participant_name}"를 찾을 수 없습니다.'}), 400
+            return jsonify({'error': f'베팅 참가자 "{participant.name}"을/를 찾을 수 없습니다.'}), 400
 
     return jsonify({
         'p1': {'name': p1.name, 'betting_count': p1.betting_count},

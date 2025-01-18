@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             populateRecentMatches(data.recentMatches);
             populateWinRate(data.winRate);
-            populateBettingParticipants(data.participants);
+            populateBettingParticipants(data.participants, data.p1_id, data.p2_id);
         })
         .catch(error => console.error('Error loading betting details:', error));
 });
@@ -27,11 +27,11 @@ function populateWinRate(winRate) {
     document.getElementById('p2-wins').textContent = `${winRate.p2_wins}승`;
 }
 
-function populateBettingParticipants(participants) {
+function populateBettingParticipants(participants, p1Id, p2Id) {
     const tbody = document.getElementById('betting-participants');
     tbody.innerHTML = participants.map(participant => {
-        const isP1Selected = participant.winner_id === 'p1';
-        const isP2Selected = participant.winner_id === 'p2';
+        const isP1Selected = participant.winner_id === p1Id;
+        const isP2Selected = participant.winner_id === p2Id;
 
         return `
             <tr>
@@ -72,7 +72,7 @@ function saveBetting(bettingId) {
             .then(response => {
                 if (!response.ok) {
                     return response.text().then(text => { throw new Error(text) });
-                }
+                }   
                 return response.json();
             })
             .then(data => {
