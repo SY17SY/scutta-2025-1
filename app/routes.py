@@ -121,7 +121,7 @@ def rankings():
     offset = int(request.args.get('offset', 0))
     limit = int(request.args.get('limit', 10))
 
-    valid_categories = ['win_order', 'loss_order', 'match_order', 'rate_order', 'opponent_order', 'achieve_order']
+    valid_categories = ['win_order', 'loss_order', 'match_order', 'rate_order', 'opponent_order', 'achieve_order', 'betting_order']
     if category not in valid_categories:
         return jsonify([])
 
@@ -132,6 +132,7 @@ def rankings():
         'rate_order': Player.match_count.desc(),
         'opponent_order': Player.win_count.desc(),
         'achieve_order': Player.match_count.desc(),
+        'betting_order': Player.match_count.desc(),
     }
     
     primary_order = getattr(Player, category)
@@ -163,7 +164,7 @@ def search_players():
     query = request.args.get('query', '').lower()
     category = request.args.get('category', 'win_order')
 
-    valid_categories = ['win_order', 'loss_order', 'match_order', 'rate_order', 'opponent_order', 'achieve_order']
+    valid_categories = ['win_order', 'loss_order', 'match_order', 'rate_order', 'opponent_order', 'achieve_order', 'betting_order']
     if category not in valid_categories:
         return jsonify([])
 
@@ -256,14 +257,37 @@ def calculate_opponent_count(player_id):
 
     return len(opponent_ids)
 
-def update_player_orders():
+def update_player_orders_by_match():
     categories = [
         ('win_order', Player.win_count.desc()),
         ('loss_order', Player.loss_count.desc()),
         ('match_order', Player.match_count.desc()),
         ('rate_order', Player.rate_count.desc()),
         ('opponent_order', Player.opponent_count.desc()),
+    ]
+
+    for order_field, primary_criteria in categories:
+        players = Player.query.filter(Player.is_valid == True).order_by(primary_criteria).all()
+        
+        current_rank = 0
+        previous_primary_value = None
+        
+        primary_field_name = primary_criteria.element.name
+
+        for i, player in enumerate(players, start=1):
+            primary_value = getattr(player, primary_field_name)
+            if primary_value != previous_primary_value:
+                current_rank = i
+                previous_primary_value = primary_value
+            
+            setattr(player, order_field, current_rank)
+
+    db.session.commit()
+    
+def update_player_orders_by_point():
+    categories = [
         ('achieve_order', Player.achieve_count.desc()),
+        ('betting_order', Player.betting_count.desc()),
     ]
 
     for order_field, primary_criteria in categories:
@@ -305,7 +329,7 @@ def approve_matches():
             loser.opponent_count = calculate_opponent_count(loser.id)
 
     db.session.commit()
-    update_player_orders()
+    update_player_orders_by_match()
     return jsonify({'success': True, 'message': '선택한 경기가 승인되었습니다.'})
 
 @current_app.route('/delete_matches', methods=['POST'])
@@ -330,7 +354,7 @@ def delete_matches():
     
     Match.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
     db.session.commit()
-    update_player_orders()
+    update_player_orders_by_match()
     
     return jsonify({'success': True, 'message': '선택한 경기가 삭제되었습니다.'})
 
@@ -345,12 +369,12 @@ def get_logs():
 @current_app.route('/update_ranks', methods=['POST'])
 def update_ranks():
     try:
-        players = Player.query.filter(Player.is_valid == True, Player.match_count >= 3).order_by(
+        players = Player.query.filter(Player.is_valid == True, Player.match_count >= 5).order_by(
             Player.rate_count.desc(), Player.match_count.desc()
         ).all()
 
         total_players = len(players)
-        cal_quotas = [round(total_players * p) for p in [0.07, 0.17, 0.29, 0.43, 0.57, 0.71, 0.83, 0.93, 1.00]]
+        cal_quotas = [round(total_players * p) for p in [0.05, 0.12, 0.21, 0.32, 0.44, 0.56, 0.68, 0.80, 1.00]]
         quotas = []
         for i in range(9):
             result = cal_quotas[i]
@@ -383,7 +407,7 @@ def update_ranks():
             else:
                 cutline.append({'rank': rank, 'rate_count': 0})
 
-        for player in Player.query.filter(Player.is_valid == True, Player.match_count < 15).all():
+        for player in Player.query.filter(Player.is_valid == True, Player.match_count < 10).all():
             player.previous_rank = None
 
         for player in players:
@@ -471,7 +495,7 @@ def update_ranks():
 @current_app.route('/revert_log', methods=['POST'])
 def revert_log():
     try:
-        players = Player.query.filter(Player.match_count >= 3).order_by(
+        players = Player.query.filter(Player.match_count >= 5).order_by(
             Player.rate_count.desc(), Player.match_count.desc()
         ).all()
 
@@ -629,7 +653,8 @@ def toggle_validity():
         player.is_valid = not player.is_valid
 
     db.session.commit()
-    update_player_orders()
+    update_player_orders_by_match()
+    update_player_orders_by_point()
     return jsonify({'success': True})
 
 @current_app.route('/delete_players', methods=['POST'])
@@ -639,7 +664,8 @@ def delete_players():
 
     Player.query.filter(Player.id.in_(ids)).delete(synchronize_session=False)
     db.session.commit()
-    update_player_orders()
+    update_player_orders_by_match()
+    update_player_orders_by_point()
     return jsonify({'success': True})
 
 @current_app.route('/update_achievement', methods=['POST'])
@@ -656,12 +682,10 @@ def update_achievement():
         return jsonify({'success': False, 'error': 'Player not found'}), 404
 
     player.achieve_count += additional_achievements
+    player.betting_count += additional_achievements
+    
     db.session.commit()
-
-    players = Player.query.order_by(Player.achieve_count.desc()).all()
-    for index, player in enumerate(players, start=1):
-        player.achieve_order = index
-    db.session.commit()
+    update_player_orders_by_point()
 
     return jsonify({'success': True, 'new_achieve_count': player.achieve_count})
 
@@ -787,8 +811,8 @@ def view_betting(betting_id):
 
     return render_template('betting_detail.html', betting=betting, participants=participants)
 
-@current_app.route('/get_achieve_counts', methods=['POST'])
-def get_achieve_counts():
+@current_app.route('/get_betting_counts', methods=['POST'])
+def get_betting_counts():
     data = request.get_json()
     players = data.get('players', [])
     participants = data.get('participants', [])
@@ -808,14 +832,14 @@ def get_achieve_counts():
         if participant:
             participant_data.append({
                 'name': participant.name,
-                'achieve_count': participant.achieve_count
+                'betting_count': participant.betting_count
             })
         else:
             return jsonify({'error': f'베팅 참가자 "{participant_name}"를 찾을 수 없습니다.'}), 400
 
     return jsonify({
-        'p1': {'name': p1.name, 'achieve_count': p1.achieve_count},
-        'p2': {'name': p2.name, 'achieve_count': p2.achieve_count},
+        'p1': {'name': p1.name, 'betting_count': p1.betting_count},
+        'p2': {'name': p2.name, 'betting_count': p2.betting_count},
         'participants': participant_data
     })
 

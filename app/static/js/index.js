@@ -173,6 +173,7 @@ function getCategoryDisplayName(category) {
         match_order: "승률",
         opponent_order: "상대",
         achieve_order: "업적",
+        betting_order: "베팅",
     };
     return categoryDisplayNames[category];
 }

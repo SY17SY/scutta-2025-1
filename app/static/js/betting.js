@@ -32,7 +32,7 @@ function createBetting() {
         return;
     }
 
-    fetch('/get_achieve_counts', {
+    fetch('/get_betting_counts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ players, participants })
@@ -46,11 +46,11 @@ function createBetting() {
 
             const message = `
 선수 정보:
-${data.p1.name} 업적: ${data.p1.achieve_count}
-${data.p2.name} 업적: ${data.p2.achieve_count}
+${data.p1.name} 업적: ${data.p1.betting_count}
+${data.p2.name} 업적: ${data.p2.betting_count}
 
 참가자 정보:
-${data.participants.map(p => `${p.name} 업적: ${p.achieve_count}`).join('\n')}
+${data.participants.map(p => `${p.name} 업적: ${p.betting_count}`).join('\n')}
 
 베팅할 점수를 입력하세요.
             `;
