@@ -870,11 +870,14 @@ def create_betting():
     db.session.flush()
 
     for participant_name in participants:
-        participant = BettingParticipant(
-            betting_id=new_betting.id,
-            participant_name=participant_name.strip()
-        )
-        db.session.add(participant)
+        participant = Player.query.filter_by(name=participant_name.strip()).first()
+        if participant:
+            betting_participant = BettingParticipant(
+                betting_id=new_betting.id,
+                participant_name=participant_name.strip(),
+                participant_id=participant.id
+            )
+            db.session.add(betting_participant)
 
     db.session.commit()
 
@@ -908,7 +911,10 @@ def betting_details(betting_id):
             'p2_score': match.loser_name if match.winner == betting.p1_id else match.winner_name
         })
 
-    participants = [{'name': p.participant_name} for p in betting.participants]
+    participants = [{
+        'name': p.participant_name,
+        'id': p.participant_id
+    } for p in betting.participants]
 
     return jsonify({
         'recentMatches': recent_matches,

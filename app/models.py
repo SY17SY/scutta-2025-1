@@ -91,4 +91,5 @@ class BettingParticipant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     betting_id = db.Column(db.Integer, db.ForeignKey('betting.id'), nullable=False)
     participant_name = db.Column(db.String(100), nullable=False)
+    participant_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=True)
     winner_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=True)
