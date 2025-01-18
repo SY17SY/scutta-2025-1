@@ -816,10 +816,7 @@ def get_betting_counts():
     data = request.get_json()
     players = data.get('players', [])
     participants = data.get('participants', [])
-
-    if len(players) != 2:
-        return jsonify({'error': '정확히 2명의 선수를 입력해야 합니다.'}), 400
-
+    
     p1 = Player.query.filter_by(name=players[0]).first()
     p2 = Player.query.filter_by(name=players[1]).first()
 
