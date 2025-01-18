@@ -69,7 +69,12 @@ function saveBetting(bettingId) {
         const participantName = participantRow.querySelector('td:nth-child(2)')?.textContent.trim();
 
         fetch(`/get_participant_id?betting_id=${bettingId}&participant_name=${encodeURIComponent(participantName)}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.error) {
                     console.error(`Error fetching participant id: ${data.error}`);

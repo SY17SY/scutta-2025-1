@@ -935,6 +935,9 @@ def get_participant_id():
     betting_id = request.args.get('betting_id')
     participant_name = request.args.get('participant_name')
 
+    if not betting_id or not participant_name:
+        return jsonify({'error': 'Invalid parameters'}), 400
+    
     participant = BettingParticipant.query.filter_by(betting_id=betting_id, participant_name=participant_name).first()
 
     if participant:
