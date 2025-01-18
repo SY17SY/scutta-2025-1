@@ -930,6 +930,18 @@ def delete_betting(betting_id):
     db.session.commit()
     return jsonify({'success': True})
 
+@current_app.route('/get_participant_id', methods=['GET'])
+def get_participant_id():
+    betting_id = request.args.get('betting_id')
+    participant_name = request.args.get('participant_name')
+
+    participant = BettingParticipant.query.filter_by(betting_id=betting_id, participant_name=participant_name).first()
+
+    if participant:
+        return jsonify({'participant_id': participant.id}), 200
+    else:
+        return jsonify({'error': '해당 참가자를 찾을 수 없습니다.'}), 404
+
 @current_app.route('/update_betting_participants/<int:betting_id>', methods=['POST'])
 def update_betting_participants(betting_id):
     data = request.get_json()

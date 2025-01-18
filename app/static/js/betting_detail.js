@@ -66,24 +66,37 @@ function saveBetting(bettingId) {
     const winnerUpdates = [];
 
     participants.forEach(participantRow => {
-        const participantId = participantRow.querySelector('td:nth-child(2)').textContent.trim();
-        const p1Radio = participantRow.querySelector(`input[name="betting-${participantId}"][value="p1-${participantId}"]`);
-        const p2Radio = participantRow.querySelector(`input[name="betting-${participantId}"][value="p2-${participantId}"]`);
+        const participantName = participantRow.querySelector('td:nth-child(2)')?.textContent.trim();
 
-        let winnerId = null;
+        fetch(`/get_participant_id?betting_id=${bettingId}&participant_name=${encodeURIComponent(participantName)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error(`Error fetching participant id: ${data.error}`);
+                    return;
+                }
 
-        if (p1Radio.checked) {
-            winnerId = "p1";
-        } else if (p2Radio.checked) {
-            winnerId = "p2";
-        }
+                const participantId = data.participant_id;
 
-        if (winnerId) {
-            winnerUpdates.push({
-                participantId: participantId,
-                winnerId: winnerId
+                const p1Radio = participantRow.querySelector(`input[name="betting-${participantName}"][value="p1-${participantName}"]`);
+                const p2Radio = participantRow.querySelector(`input[name="betting-${participantName}"][value="p2-${participantName}"]`);
+
+                let winnerId = null;
+                if (p1Radio && p1Radio.checked) {
+                    winnerId = "p1";
+                } else if (p2Radio && p2Radio.checked) {
+                    winnerId = "p2";
+                }
+
+                winnerUpdates.push({
+                    participantId: participantId,
+                    participantName: participantName,
+                    winnerId: winnerId
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching participant data:', error);
             });
-        }
     });
 
     fetch(`/update_betting_participants/${bettingId}`, {
