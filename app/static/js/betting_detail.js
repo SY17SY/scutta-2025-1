@@ -62,65 +62,31 @@ function deleteBetting(bettingId) {
 }
 
 function saveBetting(bettingId) {
-    const participants = document.querySelectorAll(`#betting-participants tr`);
-    const winnerUpdates = [];
-
-    participants.forEach(participantRow => {
-        const participantName = participantRow.querySelector('td:nth-child(2)')?.textContent.trim();
-
-        fetch(`/get_participant_id?betting_id=${bettingId}&participant_name=${encodeURIComponent(participantName)}`)
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => { throw new Error(text) });
-                }   
-                return response.json();
-            })
-            .then(data => {
-                if (data.error) {
-                    console.error(`Error fetching participant id: ${data.error}`);
-                    return;
-                }
-
-                const participantId = data.participant_id;
-
-                const p1Radio = participantRow.querySelector(`input[name="betting-${participantName}"][value="p1-${participantName}"]`);
-                const p2Radio = participantRow.querySelector(`input[name="betting-${participantName}"][value="p2-${participantName}"]`);
-
-                let winnerId = null;
-                if (p1Radio && p1Radio.checked) {
-                    winnerId = "p1";
-                } else if (p2Radio && p2Radio.checked) {
-                    winnerId = "p2";
-                }
-
-                winnerUpdates.push({
-                    participantId: participantId,
-                    participantName: participantName,
-                    winnerId: winnerId
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching participant data:', error);
-            });
+    const participants = Array.from(document.querySelectorAll('[name^="betting-"]')).map(input => {
+        const [winner, id] = input.value.split('-');
+        return {
+            id: parseInt(id, 10),
+            winner: winner === 'p1' ? 'p1' : 'p2'
+        };
     });
 
-    fetch(`/update_betting_participants/${bettingId}`, {
+    fetch(`/betting/${bettingId}/update`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ winnerUpdates })
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ participants })
     })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('베팅 결과가 저장되었습니다.');
+                alert('베팅 데이터가 성공적으로 저장되었습니다!');
+                location.reload();
             } else {
-                alert('저장 실패: ' + (data.error || '알 수 없는 오류'));
+                alert('베팅 저장 실패: ' + data.error);
             }
         })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('네트워크 오류가 발생했습니다.');
-        });
+        .catch(error => console.error('Error saving betting data:', error));
 }
 
 function submitBetting(bettingId) {

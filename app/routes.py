@@ -929,33 +929,31 @@ def delete_betting(betting_id):
     db.session.commit()
     return jsonify({'success': True})
 
-@current_app.route('/get_participant_id', methods=['GET'])
-def get_participant_id():
-    betting_id = request.args.get('betting_id')
-    participant_name = request.args.get('participant_name')
-
-    if not betting_id or not participant_name:
-        return jsonify({'error': 'Invalid parameters'}), 400
-    
-    participant = BettingParticipant.query.filter_by(betting_id=betting_id, participant_name=participant_name).first()
-
-    if participant:
-        return jsonify({'participant_id': participant.id}), 200
-    else:
-        return jsonify({'error': '해당 참가자를 찾을 수 없습니다.'}), 404
-
-@current_app.route('/update_betting_participants/<int:betting_id>', methods=['POST'])
-def update_betting_participants(betting_id):
+@current_app.route('/betting/<int:betting_id>/update', methods=['POST'])
+def update_betting(betting_id):
     data = request.get_json()
-    winner_updates = data.get('winnerUpdates', [])
+    participants = data.get('participants', [])
 
-    for update in winner_updates:
-        participant = BettingParticipant.query.filter_by(betting_id=betting_id, participant_name=update['participantId']).first()
-        if participant:
-            if update['winnerId'] == 'p1':
-                participant.winner_id = betting.p1_id
-            elif update['winnerId'] == 'p2':
-                participant.winner_id = betting.p2_id
-            db.session.commit()
+    if not participants:
+        return jsonify({'error': '참가자 데이터가 제공되지 않았습니다.'}), 400
 
-    return jsonify({'success': True})
+    try:
+        for participant_data in participants:
+            participant_id = participant_data.get('id')
+            winner = participant_data.get('winner')
+
+            betting_participant = BettingParticipant.query.filter_by(
+                betting_id=betting_id, participant_id=participant_id
+            ).first()
+
+            if betting_participant:
+                betting_participant.winner_id = (
+                    betting_participant.betting.p1_id if winner == 'p1' else betting_participant.betting.p2_id
+                )
+        
+        db.session.commit()
+        return jsonify({'success': True, 'message': '베팅 데이터가 업데이트되었습니다.'})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'서버 오류가 발생했습니다: {str(e)}'}), 500
