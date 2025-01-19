@@ -794,6 +794,7 @@ def get_players():
             'rate_count': player.rate_count,
             'match_count': player.match_count,
             'achieve_count': player.achieve_count,
+            'betting_count': player.betting_count,
             'is_valid': player.is_valid
         })
     return jsonify(response)
@@ -828,22 +829,26 @@ def delete_players():
 def update_achievement():
     data = request.get_json()
     player_id = data.get('player_id')
-    additional_achievements = data.get('achievements')
+    additional_achievements = data.get('achievements', 0)
+    additional_betting = data.get('betting', 0)
 
-    if not player_id or additional_achievements is None:
+    if not player_id or (additional_achievements == 0 and additional_betting == 0):
         return jsonify({'success': False, 'error': 'Invalid data provided'}), 400
 
     player = Player.query.get(player_id)
     if not player:
         return jsonify({'success': False, 'error': 'Player not found'}), 404
 
-    player.achieve_count += additional_achievements
-    player.betting_count += additional_achievements
+    if additional_achievements != 0:
+        player.achieve_count += additional_achievements
+    
+    if additional_betting != 0:
+        player.betting_count += additional_betting
     
     db.session.commit()
     update_player_orders_by_point()
 
-    return jsonify({'success': True, 'new_achieve_count': player.achieve_count})
+    return jsonify({'success': True, 'new_achieve_count': player.achieve_count, 'new_betting_count': player.betting_count})
 
 
 # league.js

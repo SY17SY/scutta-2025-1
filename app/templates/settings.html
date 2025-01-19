@@ -33,20 +33,45 @@
                 <button class="bg-gray-500 text-white px-4 py-2 rounded button" onclick="toggleValidity()">유효/무효</button>
                 <button class="bg-red-500 text-white px-4 py-2 rounded button" onclick="deleteSelectedPlayers()">선택 삭제</button>
             </div>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
-                        <th>이름</th>
-                        <th>승률</th>
-                        <th>경기</th>
-                        <th>업적</th>
-                        <th>등록</th>
-                    </tr>
-                </thead>
-                <tbody id="player-table-body">
-                </tbody>
-            </table>
+
+            <div class="overflow-x-auto">
+                <style>
+                    .table-container {
+                        overflow-x: auto;
+                        white-space: nowrap;
+                    }
+    
+                    .table {
+                        border-collapse: collapse;
+                        width: 100%;
+                        table-layout: auto;
+                    }
+    
+                    .table th,
+                    .table td {
+                        text-align: center;
+                        padding: 8px;
+                         white-space: nowrap;
+                    }
+    
+                </style>
+                <table class="table min-w-full">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
+                            <th>이름</th>
+                            <th>승률</th>
+                            <th>경기</th>
+                            <th>전체</th>
+                            <th>업적</th>
+                            <th>업적만</th>
+                            <th>베팅</th>
+                            <th>베팅만</th>
+                        </tr>
+                    </thead>
+                    <tbody id="player-table-body">
+                    </tbody>
+                </table>
         </div>
     </div>
 

@@ -17,8 +17,11 @@ function loadPlayers() {
                     </td>
                     <td>${player.rate_count}%</td>
                     <td>${player.match_count}</td>
+                    <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addAchieveAndBetting(${player.id})">전체</button></td>
                     <td>${player.achieve_count}</td>
-                    <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addAchievement(${player.id})">추가</button></td>
+                    <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addAchieve(${player.id})">업적</button></td>
+                    <td>${player.betting_count}</td>
+                    <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addBetting(${player.id})">베팅</button></td>
                 `;
                 tbody.appendChild(row);
             });
@@ -108,11 +111,36 @@ function toggleSelectAll(checkbox) {
     checkboxes.forEach(cb => cb.checked = checkbox.checked);
 }
 
-function addAchievement(playerId) {
+function addAchieveAndBetting(playerId) {
     const input = prompt('추가할 점수를 입력하세요:')
     const additionalAchievements = parseInt(input, 10);
 
-    if (isNaN(additionalAchievements) || additionalAchievements <= 0) {
+    if (isNaN(additionalAchievements) || additionalAchievements == 0) {
+        alert('올바른 숫자를 입력해주세요.');
+        return;
+    }
+
+    fetch('/update_achievement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player_id: playerId, achievements: additionalAchievements, betting:additionalAchievements })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadPlayers();
+            } else {
+                alert(`오류 발생: ${data.error}`);
+            }
+        })
+        .catch(error => console.error('Error updating achievements:', error));
+}
+
+function addAchieve(playerId) {
+    const input = prompt('추가할 점수를 입력하세요:')
+    const additionalAchievements = parseInt(input, 10);
+
+    if (isNaN(additionalAchievements) || additionalAchievements == 0) {
         alert('올바른 숫자를 입력해주세요.');
         return;
     }
@@ -121,6 +149,31 @@ function addAchievement(playerId) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ player_id: playerId, achievements: additionalAchievements })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadPlayers();
+            } else {
+                alert(`오류 발생: ${data.error}`);
+            }
+        })
+        .catch(error => console.error('Error updating achievements:', error));
+}
+
+function addBetting(playerId) {
+    const input = prompt('추가할 점수를 입력하세요:')
+    const additionalAchievements = parseInt(input, 10);
+
+    if (isNaN(additionalAchievements) || additionalAchievements == 0) {
+        alert('올바른 숫자를 입력해주세요.');
+        return;
+    }
+
+    fetch('/update_achievement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player_id: playerId, betting: additionalAchievements })
     })
         .then(response => response.json())
         .then(data => {
