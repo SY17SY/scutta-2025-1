@@ -299,10 +299,16 @@ def approve_bettings():
         
         winner.betting_count -= betting.point
         loser.betting_count -= betting.point
+        
         for participant in participants:
-            participant.betting_count -= betting.point
+            participated_player = Player.query.filter_by(id=participant.participant_id).first()
+            participated_player.betting_count -= betting.point
 
-        winner_participants = [p for p in participants if p.winner_id == winner.id]
+        winner_participants = [
+            Player.query.filter_by(id=participant.participant_id).first()
+            for participant in participants
+            if participant.winner_id == winner.id
+        ]
         total_sharers = 1 + len(winner_participants)
         
         total_points = betting.point * (2 + len(participants))
@@ -310,8 +316,9 @@ def approve_bettings():
         
         share = winner_points // total_sharers
 
-        for participant in winner_participants:
-            participant.betting_count += share
+        for winner_participant in winner_participants:
+            if winner_participant:
+                winner_participant.betting_count += share
 
         winner.betting_count += share
 
