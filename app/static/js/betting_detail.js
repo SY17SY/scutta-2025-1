@@ -139,6 +139,8 @@ function submitBetting(bettingId) {
                 `;
 
                 alert(`${resultInfo}`);
+
+                window.location.href = '/betting.html';
             }
         })
         .catch(error => console.error('Error submitting betting:', error));
