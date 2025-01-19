@@ -17,6 +17,7 @@
     </header>
 
     <div class="index-bar">
+        <div class="index-item" onclick="navigateTo('betting_approval.html')">베팅 승인</div>
         <div class="index-item active" onclick="navigateTo('approval.html')">경기 승인</div>
         <div class="index-item" onclick="navigateTo('assignment.html')">부수 배정</div>
         <div class="index-item" onclick="navigateTo('settings.html')">기타 설정</div>
@@ -54,11 +55,11 @@
         <table class="table">
             <thead>
                 <tr>
+                    <th><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
+                    <th>승인</th>
                     <th>Winner</th>
                     <th>세트</th>
                     <th>Loser</th>
-                    <th>승인</th>
-                    <th><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
                 </tr>
             </thead>
             <tbody id="match-table-body">

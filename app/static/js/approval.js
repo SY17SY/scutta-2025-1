@@ -9,11 +9,11 @@ function loadMatches() {
             data.forEach(match => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
+                    <td><input type="checkbox" class="row-checkbox" data-id="${match.id}"></td>
+                    <td>${match.approved ? '승인' : '미승인'}</td>
                     <td>${match.winner_name}</td>
                     <td>${match.score}</td>
                     <td>${match.loser_name}</td>
-                    <td>${match.approved ? '승인' : '미승인'}</td>
-                    <td><input type="checkbox" class="row-checkbox" data-id="${match.id}"></td>
                 `;
                 tbody.appendChild(row);
             });
@@ -33,7 +33,7 @@ tabs.forEach(tab => {
 function filterMatches(status) {
     const rows = document.querySelectorAll('#match-table-body tr');
     rows.forEach(row => {
-        const approvedCell = row.cells[3].textContent;
+        const approvedCell = row.cells[1].textContent;
         if (status === 'all' ||
             (status === 'pending' && approvedCell === '미승인') ||
             (status === 'approved' && approvedCell === '승인')) {
@@ -105,11 +105,11 @@ document.addEventListener('DOMContentLoaded', () => {
         data.forEach(match => {
             const row = document.createElement('tr');
             row.innerHTML = `
+                <td><input type="checkbox" class="row-checkbox" data-id="${match.id}"></td>
+                <td>${match.approved ? '승인' : '미승인'}</td>
                 <td>${match.winner_name}</td>
                 <td>${match.score}</td>
                 <td>${match.loser_name}</td>
-                <td>${match.approved ? '승인' : '미승인'}</td>
-                <td><input type="checkbox" class="row-checkbox" data-id="${match.id}"></td>
             `;
             tbody.appendChild(row);
         });
@@ -129,11 +129,11 @@ function updateMatchTable(data) {
     data.forEach(match => {
         const row = document.createElement('tr');
         row.innerHTML = `
+            <td><input type="checkbox" class="row-checkbox" data-id="${match.id}"></td>
+            <td>${match.approved ? '승인' : '미승인'}</td>
             <td>${match.winner_name}</td>
             <td>${match.score}</td>
             <td>${match.loser_name}</td>
-            <td>${match.approved ? '승인' : '미승인'}</td>
-            <td><input type="checkbox" class="row-checkbox" data-id="${match.id}"></td>
         `;
         tbody.appendChild(row);
     });
@@ -179,7 +179,7 @@ function selectMatches() {
 
 function selectAllMatches() {
     return Array.from(document.querySelectorAll('.row-checkbox')).filter(cb => {
-        const approvedCell = cb.closest('tr').querySelector('td:nth-child(4)').textContent;
+        const approvedCell = cb.closest('tr').querySelector('td:nth-child(2)').textContent;
         return approvedCell === '미승인';
     }).map(cb => cb.getAttribute('data-id'));
 }
@@ -189,7 +189,7 @@ function toggleSelectAll(checkbox) {
     const checkboxes = document.querySelectorAll('.row-checkbox');
 
     checkboxes.forEach(cb => {
-        const approvedCell = cb.closest('tr').querySelector('td:nth-child(4)').textContent;
+        const approvedCell = cb.closest('tr').querySelector('td:nth-child(2)').textContent;
 
         if (selectedTab === '전체' && approvedCell === '미승인') {
             cb.checked = checkbox.checked;

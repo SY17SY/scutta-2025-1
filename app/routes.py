@@ -33,6 +33,10 @@ def betting():
 def password():
     return render_template('password.html')
 
+@current_app.route('/betting_approval.html')
+def betting_approval():
+    return render_template('betting_approval.html')
+
 @current_app.route('/approval.html')
 def approval():
     return render_template('approval.html')
@@ -194,6 +198,171 @@ def search_players():
     return jsonify(response)
 
 
+# betting_approval.js
+
+@current_app.route('/load_bettings', methods=['GET'])
+def load_bettings():
+    bettings = Betting.query.filter(Betting.submitted == True).order_by(Betting.approved, Betting.id.desc()).all()
+    
+    match_ids = [betting.result for betting in bettings]
+    matches = Match.query.filter(Match.id.in_(match_ids)).all()
+    match_response = {
+        match.id: {
+            'id': match.id,
+            'winner_name': match.winner_name,
+            'winner_id': match.winner,
+            'loser_name': match.loser_name,
+            'score': match.score
+        }
+        for match in matches
+    }
+    
+    response = []
+    for betting in bettings:
+        match_info = match_response.get(betting.result)
+        if match_info:
+            participants = [
+                {
+                    'id': participant.id,
+                    'participant_name': participant.participant_name,
+                    'winner_id': participant.winner_id,
+                    'betting_id': participant.betting_id
+                }
+                for participant in betting.participants
+            ]
+            
+            win_participants = [
+                participant['participant_name']
+                for participant in participants
+                if participant['winner_id'] == match_info['winner_id']
+            ]
+            
+            lose_participants = [
+                participant['participant_name']
+                for participant in participants
+                if participant['winner_id'] != match_info['winner_id']
+            ]
+            
+            response.append({
+                'id': betting.id,
+                'match_id': betting.result,
+                'participants': participants,
+                'point': betting.point,
+                'approved': betting.approved,
+                'match': match_info,
+                'win_participants': win_participants,
+                'lose_participants': lose_participants
+            })
+    
+    return jsonify(response)
+    
+def update_player_orders_by_point():
+    categories = [
+        ('achieve_order', Player.achieve_count.desc()),
+        ('betting_order', Player.betting_count.desc()),
+    ]
+
+    for order_field, primary_criteria in categories:
+        players = Player.query.filter(Player.is_valid == True).order_by(primary_criteria).all()
+        
+        current_rank = 0
+        previous_primary_value = None
+        
+        primary_field_name = primary_criteria.element.name
+
+        for i, player in enumerate(players, start=1):
+            primary_value = getattr(player, primary_field_name)
+            if primary_value != previous_primary_value:
+                current_rank = i
+                previous_primary_value = primary_value
+            
+            setattr(player, order_field, current_rank)
+
+    db.session.commit()
+    
+@current_app.route('/approve_bettings', methods=['POST'])
+def approve_bettings():
+    ids = request.json.get('ids', [])
+    bettings = Betting.query.filter(Betting.id.in_(ids), Betting.approved == False).all()
+
+    for betting in bettings:
+        participants = betting.participants
+        match = Match.query.filter_by(id=betting.result).first()
+
+        if not match:
+            continue
+
+        winner = Player.query.filter_by(id=match.winner).first()
+        loser = Player.query.filter_by(id=match.loser).first()
+        if not winner or not loser:
+            continue
+        
+        winner.betting_count -= betting.point
+        loser.betting_count -= betting.point
+        for participant in participants:
+            participant.betting_count -= betting.point
+
+        winner_participants = [p for p in participants if p.winner_id == winner.id]
+        total_sharers = 1 + len(winner_participants)
+        
+        total_points = betting.point * (2 + len(participants))
+        winner_points = total_points + (total_points % (1 + len([p for p in participants if p.winner_id == winner.id])))
+        
+        share = winner_points // total_sharers
+
+        for participant in winner_participants:
+            participant.betting_count += share
+
+        winner.betting_count += share
+
+        betting.approved = True
+
+    db.session.commit()
+    update_player_orders_by_point()
+
+    return jsonify({"success": True, "message": "선택한 베팅이 승인되었습니다."})
+
+@current_app.route('/delete_bettings', methods=['POST'])
+def delete_bettings():
+    ids = request.json.get('ids', [])
+    bettings = Betting.query.filter(Betting.id.in_(ids), Betting.approved == True).all()
+
+    for betting in bettings:
+        if betting.approved:
+            match = Match.query.filter(Match.id == betting.result).first()
+            if not match:
+                continue
+            
+            winner = Player.query.get(match.winner)
+            loser = Player.query.get(match.loser)
+            if not winner or not loser:
+                continue
+            
+            participants = betting.participants
+            winner_participants = [p for p in participants if p.winner_id == winner.id]
+            
+            total_sharers = 1 + len(winner_participants)
+            total_points = betting.point * (2 + len(participants))
+            winner_points = total_points + (total_points % total_sharers)
+            share = winner_points // total_sharers
+            
+            for participant in winner_participants:
+                participant.betting_count -= share
+            
+            winner.betting_count -= share
+            
+            winner.betting_count += betting.point
+            loser.betting_count += betting.point
+            for participant in participants:
+                participant.betting_count += betting.point
+    
+    Betting.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
+    db.session.commit()
+    update_player_orders_by_point()
+    
+    return jsonify({'success': True, 'message': '선택한 베팅이 삭제되었습니다.'})
+
+
 # approval.js
 
 @current_app.route('/get_matches', methods=['GET'])
@@ -288,30 +457,6 @@ def update_player_orders_by_match():
 
     db.session.commit()
     
-def update_player_orders_by_point():
-    categories = [
-        ('achieve_order', Player.achieve_count.desc()),
-        ('betting_order', Player.betting_count.desc()),
-    ]
-
-    for order_field, primary_criteria in categories:
-        players = Player.query.filter(Player.is_valid == True).order_by(primary_criteria).all()
-        
-        current_rank = 0
-        previous_primary_value = None
-        
-        primary_field_name = primary_criteria.element.name
-
-        for i, player in enumerate(players, start=1):
-            primary_value = getattr(player, primary_field_name)
-            if primary_value != previous_primary_value:
-                current_rank = i
-                previous_primary_value = primary_value
-            
-            setattr(player, order_field, current_rank)
-
-    db.session.commit()
-    
 @current_app.route('/approve_matches', methods=['POST'])
 def approve_matches():
     ids = request.json.get('ids', [])
@@ -361,54 +506,6 @@ def delete_matches():
     update_player_orders_by_match()
     
     return jsonify({'success': True, 'message': '선택한 경기가 삭제되었습니다.'})
-
-@current_app.route('/approve_betting', methods=['POST'])
-def approve_betting():
-    data = request.get_json()
-
-    betting_id = data.get('bettingId')
-    winner_name = data.get('winnerName')
-
-    if not betting_id or not winner_name:
-        return jsonify({"error": "베팅 ID와 승자 이름을 입력해주세요."}), 400
-
-    betting = Betting.query.filter_by(id=betting_id).first()
-    if not betting:
-        return jsonify({"error": "해당 베팅을 찾을 수 없습니다."}), 404
-
-    if betting.approved:
-        return jsonify({"error": "이미 승인된 베팅입니다."}), 400
-
-    participants = betting.participants
-    winner = Player.query.filter_by(name=winner_name).first()
-    
-    if winner is None:
-        return jsonify({"error": "승자 이름이 잘못되었습니다."}), 400
-
-    total_points = betting.point * (2 + len(participants))
-    winner_points = total_points + (total_points % (1 + len([p for p in participants if p.winner_id == winner.id])))
-
-    winner_participants = [p for p in participants if p.winner_id == winner.id]
-    total_sharers = 1 + len(winner_participants)
-
-    share = winner_points // total_sharers
-    
-    for participant in winner_participants:
-        participant.points += share
-
-    winner.betting_count += share
-
-    betting.approved = True
-
-    db.session.commit()
-
-    return jsonify({
-        "message": "베팅이 승인되었습니다.",
-        "results": {
-            "winnerName": winner.name,
-            "distributedPoints": share
-        }
-    }), 200
     
 
 # assignment.js

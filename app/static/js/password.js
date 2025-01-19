@@ -4,7 +4,7 @@ function verifyPassword() {
     const errorMessage = document.getElementById('error-message');
 
     if (inputPassword === correctPassword) {
-        window.location.href = 'approval.html';
+        window.location.href = 'betting_approval.html';
     } else {
         errorMessage.classList.remove('hidden');
     }
