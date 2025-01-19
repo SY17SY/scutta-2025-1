@@ -845,7 +845,7 @@ def delete_league(league_id):
 
 @current_app.route('/get_bettings', methods=['GET'])
 def get_bettings():
-    bettings = Betting.query.order_by(Betting.id.desc()).all()
+    bettings = Betting.query.filter(Betting.submitted == False).order_by(Betting.id.desc()).all()
     response = []
     for betting in bettings:
         response.append({
