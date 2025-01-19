@@ -1066,6 +1066,8 @@ def submit_betting_result():
     
     share = winner_points // total_sharers
     
+    betting.submitted = True
+    
     db.session.commit()
 
     return jsonify({
