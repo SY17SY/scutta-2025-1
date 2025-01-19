@@ -45,6 +45,10 @@ def assignment():
 def settings():
     return render_template('settings.html')
 
+@current_app.route('/favicon.ico')
+def favicon():
+    return current_app.send_static_file('favicon.ico')
+
 @current_app.route('/player/<int:player_id>', methods=['GET'])
 def player_detail(player_id):
     player = Player.query.get(player_id)
@@ -358,6 +362,54 @@ def delete_matches():
     
     return jsonify({'success': True, 'message': '선택한 경기가 삭제되었습니다.'})
 
+@current_app.route('/approve_betting', methods=['POST'])
+def approve_betting():
+    data = request.get_json()
+
+    betting_id = data.get('bettingId')
+    winner_name = data.get('winnerName')
+
+    if not betting_id or not winner_name:
+        return jsonify({"error": "베팅 ID와 승자 이름을 입력해주세요."}), 400
+
+    betting = Betting.query.filter_by(id=betting_id).first()
+    if not betting:
+        return jsonify({"error": "해당 베팅을 찾을 수 없습니다."}), 404
+
+    if betting.approved:
+        return jsonify({"error": "이미 승인된 베팅입니다."}), 400
+
+    participants = betting.participants
+    winner = Player.query.filter_by(name=winner_name).first()
+    
+    if winner is None:
+        return jsonify({"error": "승자 이름이 잘못되었습니다."}), 400
+
+    total_points = betting.point * (2 + len(participants))
+    winner_points = total_points + (total_points % (1 + len([p for p in participants if p.winner_id == winner.id])))
+
+    winner_participants = [p for p in participants if p.winner_id == winner.id]
+    total_sharers = 1 + len(winner_participants)
+
+    share = winner_points // total_sharers
+    
+    for participant in winner_participants:
+        participant.points += share
+
+    winner.betting_count += share
+
+    betting.approved = True
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "베팅이 승인되었습니다.",
+        "results": {
+            "winnerName": winner.name,
+            "distributedPoints": share
+        }
+    }), 200
+    
 
 # assignment.js
 
@@ -823,8 +875,8 @@ def get_betting_counts():
         return jsonify({'error': '선수를 찾을 수 없습니다.'}), 400
 
     participant_data = []
-    for participant_id in participants:
-        participant = Player.query.filter_by(id=participant_id).first()
+    for participant_name in participants:
+        participant = Player.query.filter_by(name=participant_name.strip()).first()
         if participant:
             participant_data.append({
                 'name': participant.name,
@@ -943,6 +995,8 @@ def update_betting(betting_id):
         return jsonify({'error': '참가자 데이터가 제공되지 않았습니다.'}), 400
 
     try:
+        participants = sorted(participants, key=lambda x: x.get('id'))
+        
         for participant_data in participants:
             participant_id = participant_data.get('id')
             winner_id = participant_data.get('winner')
@@ -960,3 +1014,101 @@ def update_betting(betting_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': f'서버 오류가 발생했습니다: {str(e)}'}), 500
+    
+@current_app.route('/submit_betting_result', methods=['POST'])
+def submit_betting_result():
+    data = request.get_json()
+
+    betting_id = data.get('bettingId')
+    p1_name = data.get('p1Name')
+    p2_name = data.get('p2Name')
+    winner_name = data.get('winnerName')
+    score = data.get('score')
+
+    if not (betting_id and p1_name and p2_name and winner_name):
+        return jsonify({"error": "모든 필드를 입력해주세요."}), 400
+
+    betting = Betting.query.filter_by(id=betting_id).first()
+    if not betting:
+        return jsonify({"error": "해당 베팅을 찾을 수 없습니다."}), 404
+
+    if not (betting.p1_name == p1_name and betting.p2_name == p2_name) and not (betting.p1_name == p2_name and betting.p2_name == p1_name):
+        return jsonify({"error": "입력된 이름이 베팅 정보와 일치하지 않습니다."}), 400
+
+    submit_match_response = submit_match_internal({
+        "winner": winner_name,
+        "loser": p1_name if winner_name == p2_name else p2_name,
+        "score": score
+    })
+
+    if submit_match_response.get("error"):
+        return jsonify({"error": "경기 결과를 제출하는 데 실패했습니다: " + submit_match_response["error"]}), 400
+
+    match_id = submit_match_response.get("match_id")
+    if not match_id:
+        return jsonify({"error": "경기 ID를 가져오지 못했습니다."}), 500
+
+    betting.result = match_id
+    db.session.add(betting)
+
+    participants = betting.participants
+    winner = Player.query.filter_by(name=winner_name).first()
+    
+    if winner is None:
+        return jsonify({"error": "승자 이름이 잘못되었습니다."}), 400
+
+    total_points = betting.point * (2 + len(participants))
+    winner_points = total_points + (total_points % (1 + len([p for p in participants if p.winner_id == winner.id])))
+    
+    winner_participants = [p for p in participants if p.winner_id == winner.id]
+    win_participants_names = [p.participant_name for p in winner_participants]
+    total_sharers = 1 + len(winner_participants)
+    
+    share = winner_points // total_sharers
+    
+    db.session.commit()
+
+    return jsonify({
+        "message": "베팅 결과가 성공적으로 처리되었습니다!",
+        "results": {
+            "winnerName": winner.name,
+            "winParticipants": win_participants_names,
+            "distributedPoints": share
+        }
+    }), 200
+
+def submit_match_internal(match_data):
+    winner_name = match_data.get("winner")
+    loser_name = match_data.get("loser")
+    score_value = match_data.get("score")
+
+    if not winner_name or not loser_name or not score_value:
+        return {"error": "잘못된 데이터"}
+
+    winner = Player.query.filter_by(name=winner_name).first()
+    if not winner:
+        winner = Player(name=winner_name)
+        db.session.add(winner)
+
+    loser = Player.query.filter_by(name=loser_name).first()
+    if not loser:
+        loser = Player(name=loser_name)
+        db.session.add(loser)
+
+    db.session.flush()
+
+    current_time = datetime.now(ZoneInfo("Asia/Seoul"))
+
+    new_match = Match(
+        winner=winner.id,
+        winner_name=winner.name,
+        loser=loser.id,
+        loser_name=loser.name,
+        score=score_value,
+        timestamp=current_time,
+        approved=False
+    )
+    db.session.add(new_match)
+    db.session.commit()
+
+    return {"match_id": new_match.id}
