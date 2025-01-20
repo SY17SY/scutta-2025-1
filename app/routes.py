@@ -381,7 +381,8 @@ def get_matches():
             'winner_name': match.winner_name,
             'loser_name': match.loser_name,
             'score': match.score,
-            'approved': match.approved
+            'approved': match.approved,
+            'timestamp': match.timestamp
         }
         for match in matches
     ]
@@ -411,7 +412,8 @@ def get_matches_by_date():
                 'winner_name': match.winner_name,
                 'loser_name': match.loser_name,
                 'score': match.score,
-                'approved': match.approved
+                'approved': match.approved,
+                'timestamp': match.timestamp
             }
             for match in matches
         ]

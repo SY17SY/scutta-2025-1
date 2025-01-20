@@ -52,19 +52,42 @@
             </div>
         </div>
 
-        <table class="table">
-            <thead>
-                <tr>
-                    <th><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
-                    <th>승인</th>
-                    <th>Winner</th>
-                    <th>세트</th>
-                    <th>Loser</th>
-                </tr>
-            </thead>
-            <tbody id="match-table-body">
-            </tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <style>
+                .table-container {
+                    overflow-x: auto;
+                    white-space: nowrap;
+                }
+
+                .table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    table-layout: auto;
+                }
+
+                .table th,
+                .table td {
+                    text-align: center;
+                    padding: 8px;
+                     white-space: nowrap;
+                }
+
+            </style>
+            <table class="table min-w-full">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
+                        <th>승인</th>
+                        <th>승리자</th>
+                        <th>세트</th>
+                        <th>패배자</th>
+                        <th>시각</th>
+                    </tr>
+                </thead>
+                <tbody id="match-table-body">
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

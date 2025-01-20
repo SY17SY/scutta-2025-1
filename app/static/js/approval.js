@@ -14,11 +14,26 @@ function loadMatches() {
                     <td>${match.winner_name}</td>
                     <td>${match.score}</td>
                     <td>${match.loser_name}</td>
+                    <td>${formatTimestamp(match.timestamp)}</td>
                 `;
                 tbody.appendChild(row);
             });
         })
         .catch(error => console.error('Error fetching matches:', error));
+}
+
+function formatTimestamp(timestamp) {
+    const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+    const date = new Date(timestamp);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dayOfWeek = daysOfWeek[date.getDay()];
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}.${month}.${day}.(${dayOfWeek}) ${hours}:${minutes}`;
 }
 
 const tabs = document.querySelectorAll('.tab');
@@ -110,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${match.winner_name}</td>
                 <td>${match.score}</td>
                 <td>${match.loser_name}</td>
+                <td>${formatTimestamp(match.timestamp)}</td>
             `;
             tbody.appendChild(row);
         });
@@ -134,6 +150,7 @@ function updateMatchTable(data) {
             <td>${match.winner_name}</td>
             <td>${match.score}</td>
             <td>${match.loser_name}</td>
+            <td>${formatTimestamp(match.timestamp)}</td>
         `;
         tbody.appendChild(row);
     });

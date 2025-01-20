@@ -61,7 +61,7 @@ ${data.participants.map(p => `${p.name} 업적: ${p.betting_count}`).join('\n')}
 
             let point;
             do {
-                point = prompt(`${playerInfo}\n베팅 점수를 입력하세요. (최소 ${minBettingPoint} 이하)`);
+                point = prompt(`${playerInfo}\n베팅 점수를 입력하세요. (최대 ${minBettingPoint} 점)`);
                 if (point === null) {
                     alert("베팅 생성이 취소되었습니다.");
                     return;
