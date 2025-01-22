@@ -5,11 +5,6 @@ const limit = 30;
 document.addEventListener('DOMContentLoaded', () => {
     loadMatches(currentTab);
 
-    document.getElementById('load-more').addEventListener('click', () => {
-        offset += limit;
-        loadMatches(currentTab, offset);
-    });
-
     const calendarModal = document.getElementById('calendar-modal');
     const openCalendarButton = document.getElementById('open-calendar');
     const closeCalendarButton = document.getElementById('close-calendar');
@@ -17,7 +12,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearDatesButton = document.getElementById('clear-dates');
     const calendarElement = document.getElementById('calendar');
 
+    const tabAll = document.getElementById('tab-all');
+    const tabPending = document.getElementById('tab-pending');
+    const tabApproved = document.getElementById('tab-approved');
+
     let selectedDates = [];
+
+    let startDate = null;
+    let endDate = null;
 
     if (calendarElement) {
         const calendar = flatpickr(calendarElement, {
@@ -25,17 +27,31 @@ document.addEventListener('DOMContentLoaded', () => {
             dateFormat: "Y-m-d",
             defaultDate: null,
             onChange: (dates) => {
-                selectedDates = dates.map(date => {
-                    const seoulTime = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
-                    return flatpickr.formatDate(seoulTime, "Y-m-d");
-                });
+                selectedDates = dates.map(date => flatpickr.formatDate(date, "Y-m-d"));
             }
         });
+
+        searchDatesButton.addEventListener('click', () => {
+            calendarModal.classList.add('hidden');
+    
+            startDate = selectedDates[0];
+            endDate = selectedDates[1];
+    
+            if (!startDate || !endDate) {
+                alert('기간을 선택해주세요.');
+                return;
+            }
+    
+            offset = 0;
+            loadMatches(currentTab, offset, startDate, endDate);
+        });    
 
         clearDatesButton.addEventListener('click', () => {
             calendarModal.classList.add('hidden');
             calendar.clear();
             selectedDates = [];
+            startDate = null;
+            endDate = null;
             loadMatches(currentTab);
         });
     } else {
@@ -50,16 +66,34 @@ document.addEventListener('DOMContentLoaded', () => {
         calendarModal.classList.add('hidden');
     });
 
-    searchDatesButton.addEventListener('click', () => {
-        calendarModal.classList.add('hidden');
+    document.getElementById('load-more').addEventListener('click', () => {
+        offset += limit;
+        loadMatches(currentTab, offset, startDate, endDate);
+    });
 
-        const [startDate, endDate] = selectedDates;
+    document.getElementById('tab-all').addEventListener('click', () => {
+        document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
+        tabAll.classList.add("active");
 
-        if (!startDate || !endDate) {
-            alert('기간을 선택해주세요.');
-            return;
-        }
+        currentTab = 'all'
+        offset = 0;
+        loadMatches(currentTab, offset, startDate, endDate);
+    });
 
+    document.getElementById('tab-pending').addEventListener('click', () => {
+        document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
+        tabPending.classList.add("active");
+
+        currentTab = 'pending'
+        offset = 0;
+        loadMatches(currentTab, offset, startDate, endDate);
+    });
+
+    document.getElementById('tab-approved').addEventListener('click', () => {
+        document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
+        tabApproved.classList.add("active");
+
+        currentTab = 'approved'
         offset = 0;
         loadMatches(currentTab, offset, startDate, endDate);
     });
@@ -69,7 +103,7 @@ function loadMatches(tab, newOffset = 0, startDate = null, endDate = null) {
     currentTab = tab;
     offset = newOffset;
 
-    fetch(`/get_matches?tab=${tab}&offset=${offset}&limit=${limit}&startDate=${startDate || ''}&endDate=${endDate || ''}`)
+    fetch(`/get_matches?tab=${tab}&offset=${offset}&limit=${limit}&start_date=${startDate || ''}&end_date=${endDate || ''}`)
         .then(response => response.json())
         .then(data => {
             const tableBody = document.getElementById('match-table-body');
@@ -97,23 +131,13 @@ function formatTimestamp(timestamp) {
     const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
     const date = new Date(timestamp);
 
-    const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const dayOfWeek = daysOfWeek[date.getDay()];
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
 
-    return `${year}.${month}.${day}.(${dayOfWeek}) ${hours}:${minutes}`;
-}
-
-function selectTab(button, tab) {
-    document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
-    button.classList.add("active");
-
-    currentTab = tab;
-    offset = 0;
-    loadMatches(currentTab, offset);
+    return `${month}.${day}.(${dayOfWeek}) ${hours}:${minutes}`;
 }
 
 function approveAllMatches() {

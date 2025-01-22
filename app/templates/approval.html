@@ -25,9 +25,9 @@
 
     <div class="container mx-auto p-4">
         <div class="tabs">
-            <div class="tab text-sm active" onclick="selectTab(this, 'all')">전체</div>
-            <div class="tab text-sm" onclick="selectTab(this, 'pending')">승인 대기</div>
-            <div class="tab text-sm" onclick="selectTab(this, 'approved')">승인 완료</div>
+            <div id="tab-all" class="tab text-sm active" onclick="selectTab(this, 'all')">전체</div>
+            <div id="tab-pending" class="tab text-sm" onclick="selectTab(this, 'pending')">승인 대기</div>
+            <div id="tab-approved" class="tab text-sm" onclick="selectTab(this, 'approved')">승인 완료</div>
         </div>
 
         <div class="action-buttons">
