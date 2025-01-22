@@ -1138,6 +1138,9 @@ def create_betting():
     for participant_name in participants:
         participant = Player.query.filter_by(name=participant_name.strip()).first()
         if participant:
+            if participant.name == p1.name or participant.name == p2.name:
+                continue
+            
             betting_participant = BettingParticipant(
                 betting_id=new_betting.id,
                 participant_name=participant_name.strip(),

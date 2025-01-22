@@ -35,7 +35,9 @@ function createBetting() {
         .then(data => {
             if (data.success) {
                 if (data.rank_gap !== None && data.rank_gap >= 2) {
-                    alert(`두 선수의 부수차가 ${data.rank_gap}부입니다.\n진행하시겠습니까?`)
+                    alert(`두 선수의 부수차가 ${data.rank_gap}부입니다.\n진행하시겠습니까?`);
+                } else {
+                    return;
                 }
             } else {
                 alert(data.error);
