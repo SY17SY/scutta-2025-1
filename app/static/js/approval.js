@@ -213,9 +213,3 @@ function toggleSelectAll(checkbox) {
         }
     });
 }
-
-
-
-
-
-

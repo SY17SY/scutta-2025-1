@@ -1050,6 +1050,30 @@ def view_betting(betting_id):
 
     return render_template('betting_detail.html', betting=betting, participants=participants)
 
+@current_app.route('/get_players_ranks', methods=['POST'])
+def get_players_ranks():
+    data = request.get_json()
+    players = data.get('players', [])
+    
+    p1 = Player.query.filter_by(name=players[0]).first()
+    p2 = Player.query.filter_by(name=players[1]).first()
+    
+    if not p1 or not p2:
+        return jsonify({'error': '선수를 찾을 수 없습니다.'}), 400
+    
+    if p1.rank is not None and p2.rank is not None:
+        rank_gap = abs(p1.rank - p2.rank)
+    else: 
+        rank_gap = None
+    
+    response = {
+        'p1_rank': p1.rank,
+        'p2_rank': p2.rank,
+        'rank_gap': rank_gap
+    }
+    
+    return jsonify(response)
+
 @current_app.route('/get_betting_counts', methods=['POST'])
 def get_betting_counts():
     data = request.get_json()
@@ -1066,6 +1090,9 @@ def get_betting_counts():
     for participant_name in participants:
         participant = Player.query.filter_by(name=participant_name.strip()).first()
         if participant:
+            if participant.name == p1.name or participant.name == p2.name:
+                continue
+            
             participant_data.append({
                 'name': participant.name,
                 'betting_count': participant.betting_count

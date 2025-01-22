@@ -26,6 +26,23 @@ function createBetting() {
         return;
     }
 
+    fetch('get_players_ranks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ players })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.rank_gap !== None && data.rank_gap >= 2) {
+                    alert(`두 선수의 부수차가 ${data.rank_gap}부입니다.\n진행하시겠습니까?`)
+                }
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => console.error('Error loading players ranks:', error));
+
     const participants = prompt(`${players[0]} vs ${players[1]}\n\n베팅 참가자들의 이름을 입력하세요 (공백으로 구분)`).trim().split(" ");
     if (participants.length === 0) {
         alert("최소 1명 이상의 베팅 참가자를 입력하세요.");
