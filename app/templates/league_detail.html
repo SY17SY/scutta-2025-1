@@ -68,8 +68,10 @@
                 </tbody>            
             </table>
         </div>
-        <button onclick="saveLeague({{ league.id }})" class="bg-gray-400 text-white px-4 py-2 rounded">저장</button>
-        <button onclick="submitLeague({{ league.id }})" class="bg-main text-white px-4 py-2 rounded">제출</button>
+        <div class="flex justify-between mb-6">
+            <button onclick="saveLeague({{ league.id }})" class="bg-gray-400 text-white px-4 py-2 rounded">저장</button>
+            <button onclick="submitLeague({{ league.id }})" class="bg-main text-white px-4 py-2 rounded">제출</button>
+        </div>
     </div>
     <script src="../static/js/script.js"></script>
     <script src="../static/js/league_detail.js"></script>

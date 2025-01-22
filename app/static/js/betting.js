@@ -33,14 +33,10 @@ function createBetting() {
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                if (data.rank_gap !== None && data.rank_gap >= 2) {
-                    alert(`두 선수의 부수차가 ${data.rank_gap}부입니다.\n진행하시겠습니까?`);
-                } else {
-                    return;
-                }
+            if (data.rank_gap >= 2) {
+                alert(`두 선수의 부수차가 ${data.rank_gap}부입니다.\n진행하시겠습니까?`);
             } else {
-                alert(data.error);
+                return;
             }
         })
         .catch(error => console.error('Error loading players ranks:', error));
