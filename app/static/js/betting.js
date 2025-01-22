@@ -26,9 +26,9 @@ function createBetting() {
         return;
     }
 
-    const participants = prompt("베팅 참가자 이름(들)을 입력하세요 (공백으로 구분)").trim().split(" ");
+    const participants = prompt(`${players[0]} vs ${players[1]}\n\n베팅 참가자들의 이름을 입력하세요 (공백으로 구분)`).trim().split(" ");
     if (participants.length === 0) {
-        alert("적어도 1명의 베팅 참가자를 입력하세요.");
+        alert("최소 1명 이상의 베팅 참가자를 입력하세요.");
         return;
     }
 

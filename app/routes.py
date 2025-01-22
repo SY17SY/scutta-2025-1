@@ -138,23 +138,32 @@ def rankings():
         'loss_order': Player.match_count.desc(),
         'match_order': Player.win_count.desc(),
         'rate_order': Player.match_count.desc(),
-        'opponent_order': Player.win_count.desc(),
-        'achieve_order': Player.match_count.desc(),
-        'betting_order': Player.match_count.desc(),
+        'opponent_order': Player.match_count.desc(),
+        'achieve_order': Player.betting_count.desc(),
+        'betting_order': Player.achieve_count.desc(),
+    }
+    
+    dynamic_column_2 = {
+        'win_order': 'match_count',
+        'loss_order': 'match_count',
+        'match_order': 'rate_count',
+        'rate_order': 'match_count',
+        'opponent_order': 'match_count',
+        'achieve_order': 'betting_count',
+        'betting_order': 'achieve_count',
     }
     
     primary_order = getattr(Player, category)
+    attribute_name = category.replace('_order', '_count')
     secondary_order = secondary_criteria.get(category)
+    attribute_name_2 = dynamic_column_2.get(category)
     
     players = Player.query.filter(Player.is_valid == True).order_by(primary_order, secondary_order).offset(offset).limit(limit).all()
 
     response = []
     for player in players:
-        if category == 'match_order':
-            category_value = player.rate_count
-        else:
-            attribute_name = category.replace('_order', '_count')
-            category_value = getattr(player, attribute_name, 0)
+        category_value = getattr(player, attribute_name, 0)
+        category_value_2 = getattr(player, attribute_name_2, 0)
 
         response.append({
             'id': player.id,
@@ -162,6 +171,7 @@ def rankings():
             'rank': player.rank or '무',
             'name': player.name,
             'category_value': category_value or 0,
+            'category_value_2': category_value_2 or 0,
             'match_count': player.match_count or 0
         })
 
@@ -176,15 +186,37 @@ def search_players():
     if category not in valid_categories:
         return jsonify([])
 
-    players = Player.query.filter(Player.name.ilike(f"%{query}%")).order_by(getattr(Player, category)).all()
+    secondary_criteria = {
+        'win_order': Player.match_count.desc(),
+        'loss_order': Player.match_count.desc(),
+        'match_order': Player.win_count.desc(),
+        'rate_order': Player.match_count.desc(),
+        'opponent_order': Player.match_count.desc(),
+        'achieve_order': Player.betting_count.desc(),
+        'betting_order': Player.achieve_count.desc(),
+    }
+    
+    dynamic_column_2 = {
+        'win_order': 'match_count',
+        'loss_order': 'match_count',
+        'match_order': 'rate_count',
+        'rate_order': 'match_count',
+        'opponent_order': 'match_count',
+        'achieve_order': 'betting_count',
+        'betting_order': 'achieve_count',
+    }
+    
+    primary_order = getattr(Player, category)
+    attribute_name = category.replace('_order', '_count')
+    secondary_order = secondary_criteria.get(category)
+    attribute_name_2 = dynamic_column_2.get(category)
+
+    players = Player.query.filter(Player.name.ilike(f"%{query}%")).order_by(primary_order, secondary_order).all()
 
     response = []
     for player in players:
-        if category == 'match_order':
-            category_value = player.rate_count
-        else:
-            attribute_name = category.replace('_order', '_count')
-            category_value = getattr(player, attribute_name, 0)
+        category_value = getattr(player, attribute_name, 0)
+        category_value_2 = getattr(player, attribute_name_2, 0)
 
         response.append({
             'id': player.id,
@@ -192,6 +224,7 @@ def search_players():
             'rank': player.rank or '무',
             'name': player.name,
             'category_value': category_value or 0,
+            'category_value_2': category_value_2 or 0,
             'match_count': player.match_count or 0
         })
 
@@ -374,7 +407,29 @@ def delete_bettings():
 
 @current_app.route('/get_matches', methods=['GET'])
 def get_matches():
-    matches = Match.query.order_by(Match.approved, Match.timestamp.desc()).all()
+    offset = int(request.args.get('offset', 0))
+    limit = int(request.args.get('limit', 30))
+    tab = request.args.get('tab', 'all')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    query = Match.query.order_by(Match.approved, Match.timestamp.desc())
+    
+    if tab == 'pending':
+        query = query.filter(Match.approved == False)
+    elif tab == 'approved':
+        query = query.filter(Match.approved == True)
+    
+    if start_date and end_date:
+        try:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d")
+            end_date = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
+            query = query.filter(Match.timestamp >= start_date, Match.timestamp <= end_date)
+        except ValueError:
+            return jsonify({'error': 'Invalid date format'}), 400
+    
+    matches = query.offset(offset).limit(limit).all()
+    
     response = [
         {
             'id': match.id,
@@ -386,41 +441,7 @@ def get_matches():
         }
         for match in matches
     ]
-    return jsonify(response)
-
-@current_app.route('/get_matches_by_date', methods=['GET'])
-def get_matches_by_date():
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-
-    try:
-        start_date = datetime.strptime(start_date, "%Y-%m-%d")
-        end_date = datetime.strptime(end_date, "%Y-%m-%d")
-        
-        end_date = end_date.replace(hour=23, minute=59, second=59)
-
-        matches = Match.query.filter(
-            and_(
-                Match.timestamp >= start_date,
-                Match.timestamp <= end_date
-            )
-        ).order_by(Match.timestamp.desc()).all()
-
-        response = [
-            {
-                'id': match.id,
-                'winner_name': match.winner_name,
-                'loser_name': match.loser_name,
-                'score': match.score,
-                'approved': match.approved,
-                'timestamp': match.timestamp
-            }
-            for match in matches
-        ]
-        return jsonify(response)
-
-    except ValueError:
-        return jsonify({'error': 'Invalid date format'}), 400
+    return jsonify(matches=response)
 
 def calculate_opponent_count(player_id):
     from sqlalchemy import or_
@@ -469,31 +490,78 @@ def update_player_orders_by_match():
 @current_app.route('/approve_matches', methods=['POST'])
 def approve_matches():
     ids = request.json.get('ids', [])
+    if not ids:
+        return jsonify({'success': False, 'message': '승인할 경기가 선택되지 않았습니다.'}), 400
+    
     matches = Match.query.filter(Match.id.in_(ids), Match.approved == False).all()
 
     for match in matches:
-        match.approved = True
         winner = Player.query.get(match.winner)
         loser = Player.query.get(match.loser)
-        if winner:
+        if winner and loser:
             winner.match_count += 1
             winner.win_count += 1
             winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2)
+            winner_previous_opponent = winner.opponent_count
             winner.opponent_count = calculate_opponent_count(winner.id)
-        if loser:
+            
+            winner.betting_count += 1
+            
             loser.match_count += 1
             loser.loss_count += 1
             loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2)
+            loser_previous_opponent = loser.opponent_count
             loser.opponent_count = calculate_opponent_count(loser.id)
+            
+            loser.betting_count += 1
+            
+            if winner.match_count == 30: winner.betting_count += 5; winner.achieve_count += 5
+            if winner.match_count == 50: winner.betting_count += 10; winner.achieve_count += 10
+            if winner.match_count == 70: winner.betting_count += 20; winner.achieve_count += 20
+            if winner.match_count == 100: winner.betting_count += 30; winner.achieve_count += 30
+            if winner.win_count == 30: winner.betting_count += 10; winner.achieve_count += 10
+            if winner.win_count == 50: winner.betting_count += 20; winner.achieve_count += 20
+            if winner.win_count == 70: winner.betting_count += 30; winner.achieve_count += 30
+            
+            if winner_previous_opponent == 9 and winner.opponent_count == 10: winner.betting_count += 5; winner.achieve_count += 5
+            if winner_previous_opponent == 29 and winner.opponent_count == 30: winner.betting_count += 20; winner.achieve_count += 20
+            if winner_previous_opponent == 49 and winner.opponent_count == 50: winner.betting_count += 30; winner.achieve_count += 30
+            
+            if loser.match_count == 30: loser.betting_count += 5; loser.achieve_count += 5
+            if loser.match_count == 50: loser.betting_count += 10; loser.achieve_count += 10
+            if loser.match_count == 70: loser.betting_count += 20; loser.achieve_count += 20
+            if loser.match_count == 100: loser.betting_count += 30; loser.achieve_count += 30
+            if loser.loss_count == 30: loser.betting_count += 10; loser.achieve_count += 10
+            if loser.loss_count == 50: loser.betting_count += 20; loser.achieve_count += 20
+            if loser.loss_count == 70: loser.betting_count += 30; loser.achieve_count += 30
 
+            if loser_previous_opponent == 9 and loser.opponent_count == 10: loser.betting_count += 5; loser.achieve_count += 5
+            if loser_previous_opponent == 29 and loser.opponent_count == 30: loser.betting_count += 20; loser.achieve_count += 20
+            if loser_previous_opponent == 49 and loser.opponent_count == 50: loser.betting_count += 30; loser.achieve_count += 30
+            
+            if winner.rank is not None and loser.rank is not None:
+                if winner.rank - loser.rank == 8:
+                    winner.betting_count += 30
+                    winner.achieve_count += 30
+                if loser.rank - winner.rank == 8:
+                    loser.betting_count += 3
+                    loser.achieve_count += 3
+            
+        match.approved = True
+        
     db.session.commit()
     update_player_orders_by_match()
-    return jsonify({'success': True, 'message': '선택한 경기가 승인되었습니다.'})
+    update_player_orders_by_point()
+    return jsonify({'success': True, 'message': f'{len(matches)}개의 경기가 승인되었습니다.'})
 
 @current_app.route('/delete_matches', methods=['POST'])
 def delete_matches():
     ids = request.json.get('ids', [])
+    if not ids:
+        return jsonify({'success': False, 'message': '삭제할 경기가 선택되지 않았습니다.'}), 400
+    
     matches = Match.query.filter(Match.id.in_(ids), Match.approved == True).all()
+    matches_pending = Match.query.filter(Match.id.in_(ids), Match.approved == False).all()
 
     for match in matches:
         if match.approved:
@@ -514,8 +582,14 @@ def delete_matches():
     db.session.commit()
     update_player_orders_by_match()
     
-    return jsonify({'success': True, 'message': '선택한 경기가 삭제되었습니다.'})
-    
+    return jsonify({'success': True, 'message': f'{len(matches)}개의 승인된 경기와 {len(matches_pending)}개의 미승인된 경기가 삭제되었습니다.'})
+
+@current_app.route('/select_all_matches', methods=['GET'])
+def select_all_matches():
+    matches = Match.query.filter_by(approved=False).all()
+    result = [match.id for match in matches]
+    return jsonify({'ids': result})
+
 
 # assignment.js
 
@@ -575,8 +649,11 @@ def update_ranks():
                 player.rank_change = 'New'
             elif player.previous_rank < player.rank:
                 player.rank_change = 'Up'
+                if player.rank - player.previous_rank >= 1: player.betting_count += 2; player.achieve_count +=2
+                if player.rank - player.previous_rank >= 2: player.betting_count += 3; player.achieve_count +=3
             elif player.previous_rank > player.rank:
                 player.rank_change = 'Down'
+                if player.previous_rank - player.rank >= 2: player.betting_count += 3; player.achieve_count +=3
             else:
                 player.rank_change = None
 

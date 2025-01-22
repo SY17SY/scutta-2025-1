@@ -122,8 +122,10 @@ function selectCategory(button, category) {
     currentCategory = category;
 
     const dynamicColumn = document.getElementById("dynamic-column");
+    const dynamicColumn2 = document.getElementById("dynamic-column-2");
     if (dynamicColumn) {
         dynamicColumn.textContent = getCategoryDisplayName(category);
+        dynamicColumn2.textContent = getCategoryDisplayName2(category);
     }
 
     const searchInput = document.querySelector('input[oninput="searchByName(this.value)"]');
@@ -170,7 +172,7 @@ function getCategoryDisplayName(category) {
         win_order: "승리",
         loss_order: "패배",
         rate_order: "승률",
-        match_order: "승률",
+        match_order: "경기",
         opponent_order: "상대",
         achieve_order: "업적",
         betting_order: "베팅",
@@ -178,10 +180,25 @@ function getCategoryDisplayName(category) {
     return categoryDisplayNames[category];
 }
 
+function getCategoryDisplayName2(category) {
+    const categoryDisplayNames = {
+        win_order: "경기",
+        loss_order: "경기",
+        rate_order: "경기",
+        match_order: "승률",
+        opponent_order: "경기",
+        achieve_order: "베팅",
+        betting_order: "업적",
+    };
+    return categoryDisplayNames[category];
+}
+
 function updateTable(data, append) {
     const tableBody = document.getElementById("table-body");
     const dynamicColumn = document.getElementById("dynamic-column");
+    const dynamicColumn2 = document.getElementById("dynamic-column-2");
     dynamicColumn.textContent = getCategoryDisplayName(currentCategory);
+    dynamicColumn2.textContent = getCategoryDisplayName2(currentCategory);
 
     if (!append) {
         tableBody.innerHTML = '';
@@ -196,7 +213,7 @@ function updateTable(data, append) {
                 <a href="/player/${player.id}">${player.name || " "}</a>
             </td>
             <td class="border border-gray-300 p-2">${player.category_value}</td>
-            <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
+            <td class="border border-gray-300 p-2">${player.category_value_2}</td>
         `;
         tableBody.appendChild(row);
     });
@@ -237,7 +254,7 @@ function searchByName(query) {
                         <a href="/player/${player.id}">${player.name || " "}</a>
                     </td>
                     <td class="border border-gray-300 p-2">${player.category_value}</td>
-                    <td class="border border-gray-300 p-2">${player.match_count || 0}</td>
+                    <td class="border border-gray-300 p-2">${player.category_value_2}</td>
                 `;
                 tableBody.appendChild(row);
             });
