@@ -28,6 +28,13 @@ document.addEventListener('DOMContentLoaded', () => {
             defaultDate: null,
             onChange: (dates) => {
                 selectedDates = dates.map(date => flatpickr.formatDate(date, "Y-m-d"));
+            },
+            onOpen: (selectedDates, dateStr, instance) => {
+                const calendarPopup = instance.calendarContainer;
+                calendarPopup.style.position = "fixed";
+                calendarPopup.style.top = "50%";
+                calendarPopup.style.left = "50%";
+                calendarPopup.style.transform = "translate(-50%, -50%)";
             }
         });
 
