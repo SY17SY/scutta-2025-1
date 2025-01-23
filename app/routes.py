@@ -179,8 +179,11 @@ def rankings():
 
 @current_app.route('/search_players', methods=['GET'])
 def search_players():
-    query = request.args.get('query', '').lower()
+    query = request.args.get('query', '').strip()
     category = request.args.get('category', 'win_order')
+    
+    if len(query) < 2:
+        return jsonify([])
 
     valid_categories = ['win_order', 'loss_order', 'match_order', 'rate_order', 'opponent_order', 'achieve_order', 'betting_order']
     if category not in valid_categories:
