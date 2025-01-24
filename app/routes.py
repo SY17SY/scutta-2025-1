@@ -1469,7 +1469,9 @@ def get_partners():
     response = []
     for partner in partners:
         response.append({
+            'p1_id': partner.p1_id,
             'p1_name': partner.p1_name,
+            'p2_id': partner.p2_id,
             'p2_name': partner.p2_name,
             'submitted': partner.submitted
         })
