@@ -128,7 +128,6 @@ function loadMatches(tab, newOffset = 0, startDate = null, endDate = null) {
                 `;
                 tableBody.appendChild(row);
             });
-
             document.getElementById('load-more').style.display = data.matches.length < limit ? 'none' : 'block';
         });
 }

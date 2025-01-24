@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 상대</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <style>
+        .container {
+            margin-top: 80px;
+        }
+    </style>
+</head>
+<body>
+    <header class="flex justify-between items-center p-4 bg-white shadow">
+        <button class="text-xl" onclick="history.back()">&larr;</button>
+        <h1 class="text-lg font-bold">오늘의 상대</h1>
+        <div class="text-sm">{{ config['GLOBAL_TEXTS']['semester'] }}</div>
+    </header>
+
+    <div class="container mx-auto p-4">
+        <h3 class="text-lg font-bold text-center mb-4">경기를 진행하고 결과를 제출하세요!</h3>
+        <table class="table w-full border-collapse border border-gray-300 mb-4">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="border border-gray-300 p-2">기존부원</th>
+                    <th class="border border-gray-300 p-2">제출</th>
+                    <th class="border border-gray-300 p-2">신입부원</th>
+                </tr>
+            </thead>
+            <tbody id="partner-body"></tbody>
+        </table>
+    </div>
+
+    <script src="../static/js/script.js"></script>
+    <script src="../static/js/partner.js"></script>
+</body>
+</html>

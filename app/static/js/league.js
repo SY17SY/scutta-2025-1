@@ -15,7 +15,6 @@ function loadLeagues() {
                 `;
                 tbody.appendChild(row);
             });
-        
         })
         .catch(error => console.error('Error:', error));
 }

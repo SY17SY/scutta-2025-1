@@ -95,3 +95,12 @@ class BettingParticipant(db.Model):
     participant_name = db.Column(db.String(100), nullable=False)
     participant_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=True)
     winner_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=True)
+
+class TodayPartner(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    p1_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    p1_name = db.Column(db.String(100), nullable=False)
+    p2_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    p2_name = db.Column(db.String(100), nullable=False)
+    submitted = db.Column(db.Boolean, default=False)
+    

@@ -2,7 +2,7 @@ from flask import render_template, current_app
 from flask import request, jsonify
 from app import db
 from sqlalchemy import and_
-from app.models import Match, Player, UpdateLog, League, Betting, BettingParticipant
+from app.models import Match, Player, UpdateLog, League, Betting, BettingParticipant, TodayPartner
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -20,6 +20,10 @@ def health_check():
 @current_app.route('/')
 def index():
     return render_template('index.html')
+
+@current_app.route('/partner.html')
+def partner():
+    return render_template('partner.html')
 
 @current_app.route('/league.html')
 def league():
@@ -1335,3 +1339,19 @@ def submit_match_internal(match_data):
     db.session.commit()
 
     return {"match_id": new_match.id}
+
+
+# partner.js
+
+@current_app.route('/get_partners', methods=['GET'])
+def get_partners():
+    partners = TodayPartner.query.order_by(TodayPartner.submitted, TodayPartner.id).all()
+    response = []
+    for partner in partners:
+        response.append({
+            'p1_name': partner.p1_name,
+            'p2_name': partner.p2_name,
+            'submitted': partner.submitted
+        })
+    
+    return jsonify(response)
