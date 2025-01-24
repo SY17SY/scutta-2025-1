@@ -119,7 +119,7 @@ function submitPartner() {
         .then(response => {
             if (response.ok) {
                 alert("오늘의 상대가 저장되었습니다.");
-                location.reload();
+                window.location.href = '/partner.html';
             } else {
                 alert("저장 중 문제가 발생했습니다.");
             }
