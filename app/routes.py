@@ -425,7 +425,7 @@ def get_matches():
     
     if start_date and end_date:
         try:
-            start_date = datetime.strptime(start_date, "%Y-%m-%d")
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").replace(hour=00, minute=00, second=00)
             end_date = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
             query = query.filter(Match.timestamp >= start_date, Match.timestamp <= end_date)
         except ValueError:
