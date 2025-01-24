@@ -25,10 +25,21 @@
     <div class="container mx-auto p-4">
         <div class="content mb-8">
             <h2 class="text-lg font-bold mb-4">오늘의 상대</h2>
-            <button class="bg-gray-500 text-white px-4 py-2 rounded button mb-4" onclick="resetPartner()">초기화</button>
+            <button id="reset-partner-button" class="bg-gray-500 text-white px-4 py-2 rounded button mb-4" onclick="resetPartner()">초기화</button>
             <textarea id="old-player-input" class="text-area" placeholder="기존 부원 이름을 스페이스바로 구분하여 입력하세요."></textarea>
             <textarea id="new-player-input" class="text-area" placeholder="신입 부원 이름을 스페이스바로 구분하여 입력하세요."></textarea>
-            <button class="bg-main text-white px-4 py-2 rounded button" onclick="registerPartner()">등록</button>
+            <button id="register-partner-button-1" class="bg-main text-white px-4 py-2 rounded button" onclick="registerPartner()">등록</button>
+
+            <table id="setting-partner-table" class="table w-full border-collapse border border-gray-300 mb-4 hidden">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border border-gray-300 p-2">기존부원</th>
+                        <th class="border border-gray-300 p-2">신입부원</th>
+                    </tr>
+                </thead>
+                <tbody id="setting-partner-body"></tbody>
+            </table>
+            <button id="register-partner-button-2" class="bg-main text-white px-4 py-2 rounded button hidden" onclick="submitPartner()">확정</button>
 
             <h2 class="text-lg font-bold mt-8 mb-4">선수 등록</h2>
             <textarea id="player-input" class="text-area" placeholder="이름을 스페이스바로 구분하여 입력하세요."></textarea>

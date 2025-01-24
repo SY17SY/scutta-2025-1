@@ -100,16 +100,7 @@ def submit_match():
             continue
         
         winner = Player.query.filter_by(name=winner_name).first()
-        if not winner:
-            winner = Player(name=winner_name)
-            db.session.add(winner)
-
         loser = Player.query.filter_by(name=loser_name).first()
-        if not loser:
-            loser = Player(name=loser_name)
-            db.session.add(loser)
-        
-        db.session.flush()
         
         current_time = datetime.now(ZoneInfo("Asia/Seoul"))
         
@@ -123,6 +114,13 @@ def submit_match():
             approved=False
         )
         db.session.add(new_match)
+        
+        today_partner = TodayPartner.query.filter_by(p1_name=winner_name, p2_name=loser_name).first()
+        if not today_partner:
+            today_partner = TodayPartner.query.filter_by(p1_name=loser_name, p2_name=winner_name).first()
+        
+        if today_partner:
+            today_partner.submitted = True
     
     db.session.commit()
     return jsonify({"message": f"{len(data)}개의 경기 결과가 제출되었습니다!"}), 200
@@ -553,7 +551,15 @@ def approve_matches():
                 if loser.rank - winner.rank == 8:
                     loser.betting_count += 3
                     loser.achieve_count += 3
-            
+        
+        today_partner = TodayPartner.query.filter_by(p1_id=match.winner, p2_id=match.loser, submitted=True).first()
+        if not today_partner:
+            today_partner = TodayPartner.query.filter_by(p1_id=match.loser, p2_id=match.winner, submitted=True).first()
+        
+        if today_partner:
+            winner.betting_count += 5
+            loser.betting_count += 5
+        
         match.approved = True
         
     db.session.commit()
@@ -574,17 +580,63 @@ def delete_matches():
         if match.approved:
             winner = Player.query.get(match.winner)
             loser = Player.query.get(match.loser)
-            if winner:
+            if winner and loser:
                 winner.match_count -= 1
                 winner.win_count -= 1
                 winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2) if winner.match_count > 0 else 0
+                winner_previous_opponent = winner.opponent_count
                 winner.opponent_count = calculate_opponent_count(winner.id)
-            if loser:
+                
+                winner.betting_count -= 1
+
                 loser.match_count -= 1
                 loser.loss_count -= 1
                 loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2) if loser.match_count > 0 else 0
+                loser_previous_opponent = loser.opponent_count
                 loser.opponent_count = calculate_opponent_count(loser.id)
-    
+                
+                loser.betting_count -= 1
+                
+                if winner.match_count == 29: winner.betting_count -= 5; winner.achieve_count -= 5
+                if winner.match_count == 49: winner.betting_count -= 10; winner.achieve_count -= 10
+                if winner.match_count == 69: winner.betting_count -= 20; winner.achieve_count -= 20
+                if winner.match_count == 99: winner.betting_count -= 30; winner.achieve_count -= 30
+                if winner.win_count == 29: winner.betting_count -= 10; winner.achieve_count -= 10
+                if winner.win_count == 49: winner.betting_count -= 20; winner.achieve_count -= 20
+                if winner.win_count == 69: winner.betting_count -= 30; winner.achieve_count -= 30
+                
+                if winner_previous_opponent == 10 and winner.opponent_count == 9: winner.betting_count -= 5; winner.achieve_count -= 5
+                if winner_previous_opponent == 30 and winner.opponent_count == 29: winner.betting_count -= 20; winner.achieve_count -= 20
+                if winner_previous_opponent == 50 and winner.opponent_count == 49: winner.betting_count -= 30; winner.achieve_count -= 30
+                
+                if loser.match_count == 29: loser.betting_count -= 5; loser.achieve_count -= 5
+                if loser.match_count == 49: loser.betting_count -= 10; loser.achieve_count -= 10
+                if loser.match_count == 69: loser.betting_count -= 20; loser.achieve_count -= 20
+                if loser.match_count == 99: loser.betting_count -= 30; loser.achieve_count -= 30
+                if loser.loss_count == 29: loser.betting_count -= 10; loser.achieve_count -= 10
+                if loser.loss_count == 49: loser.betting_count -= 20; loser.achieve_count -= 20
+                if loser.loss_count == 69: loser.betting_count -= 30; loser.achieve_count -= 30
+
+                if loser_previous_opponent == 10 and loser.opponent_count == 9: loser.betting_count -= 5; loser.achieve_count -= 5
+                if loser_previous_opponent == 30 and loser.opponent_count == 29: loser.betting_count -= 20; loser.achieve_count -= 20
+                if loser_previous_opponent == 50 and loser.opponent_count == 49: loser.betting_count -= 30; loser.achieve_count -= 30
+                
+                if winner.rank is not None and loser.rank is not None:
+                    if winner.rank - loser.rank == 8:
+                        winner.betting_count -= 30
+                        winner.achieve_count -= 30
+                    if loser.rank - winner.rank == 8:
+                        loser.betting_count -= 3
+                        loser.achieve_count -= 3  
+
+            today_partner = TodayPartner.query.filter_by(p1_id=match.winner, p2_id=match.loser, submitted=True).first()
+            if not today_partner:
+                today_partner = TodayPartner.query.filter_by(p1_id=match.loser, p2_id=match.winner, submitted=True).first()
+            
+            if today_partner:
+                winner.betting_count -= 5
+                loser.betting_count -= 5
+                
     Match.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
     db.session.commit()
     update_player_orders_by_match()
@@ -878,6 +930,9 @@ def register_partner():
         old_player = old_players[i % old_count]
         pairs.append({"p1_name": old_player, "p2_name": new_player})
 
+    TodayPartner.query.delete()
+    db.session.commit()
+
     return jsonify(pairs), 200
 
 @current_app.route('/submit_partner', methods=['POST'])
@@ -886,6 +941,8 @@ def submit_partner():
     pairs = data.get('pairs', [])
 
     try:
+        TodayPartner.query.delete()
+
         for pair in pairs:
             p1_name = pair['p1_name']
             p2_name = pair['p2_name']
@@ -909,7 +966,7 @@ def submit_partner():
     except Exception as e:
         print(e)
         return jsonify({"error": "저장 중 문제가 발생했습니다."}), 500
-
+    
 @current_app.route('/register_players', methods=['POST'])
 def register_players():
     data = request.get_json()
@@ -1016,8 +1073,14 @@ def get_leagues():
 def view_league(league_id):
     league = League.query.get_or_404(league_id)
     players = [league.p1, league.p2, league.p3, league.p4, league.p5]
+    
+    player_ids = []
+    for player_name in players:
+        player = Player.query.filter_by(name=player_name).first()
+        player_id = player.id if player else None
+        player_ids.append(player_id)
 
-    indexed_players = [{'index': idx, 'player': player} for idx, player in enumerate(players)]
+    indexed_players = [{'index': idx, 'player': player_name, 'player_id': player_id} for idx, (player_name, player_id) in enumerate(zip(players, player_ids))]
 
     return render_template('league_detail.html', league=league, players=indexed_players)
 

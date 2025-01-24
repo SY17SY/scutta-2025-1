@@ -47,9 +47,13 @@
                     data.forEach(partner => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td>${partner.p1_name}</td>
+                            <td>
+                                <a href="/player/${partner.p1_id}">${partner.p1_name}</a>
+                            </td>
                             <td>${partner.submitted ? '제출' : '미제출'}</td>
-                            <td>${partner.p2_name}</td>
+                            <td>
+                                <a href="/player/${partner.p2_id}">${partner.p2_name}</a>
+                            </td>
                         `;
                         tbody.appendChild(row);
                     });

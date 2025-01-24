@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', loadPlayers);
+document.addEventListener('DOMContentLoaded', () => {
+    loadPlayers();
+});
 
 function loadPlayers() {
     fetch('/get_players')
@@ -47,16 +49,28 @@ function resetPartner() {
 }
 
 function registerPartner() {
-    const oldPlayerInput = document.getElementById('old-player-input').value.trim();
-    const newPlayerInput = document.getElementById('new-player-input').value.trim();
+    const resetPartnerButton = document.getElementById('reset-partner-button');
+    const oldPlayerInput = document.getElementById('old-player-input');
+    const newPlayerInput = document.getElementById('new-player-input');
+    const registerPartnerButton1 = document.getElementById('register-partner-button-1');
+    const settingPartnerTable = document.getElementById('setting-partner-table');
+    const registerPartnerButton2 = document.getElementById('register-partner-button-2');
 
     if (!oldPlayerInput || !newPlayerInput) {
         alert("기존 부원 이름과 신입 부원 이름을 모두 입력해주세요.");
         return;
     }
 
-    const oldPlayers = oldPlayerInput.split(" ");
-    const newPlayers = newPlayerInput.split(" ").reverse();
+    resetPartnerButton.classList.add('hidden');
+    oldPlayerInput.classList.add('hidden');
+    newPlayerInput.classList.add('hidden');
+    registerPartnerButton1.classList.add('hidden');
+
+    settingPartnerTable.classList.remove('hidden');
+    registerPartnerButton2.classList.remove('hidden');
+
+    const oldPlayers = oldPlayerInput.value.trim().split(" ");
+    const newPlayers = newPlayerInput.value.trim().split(" ").reverse();
 
     fetch('/register_partner', {
         method: 'POST',
@@ -65,39 +79,55 @@ function registerPartner() {
         },
         body: JSON.stringify({ old_players: oldPlayers, new_players: newPlayers, }),
     })
-    .then(response => response.json())
-    .then(pairs => {
-        const userConfirmed = prompt("자동 매칭된 짝입니다. 수정이 필요하다면 내용을 변경하세요:\n\n" + 
-            pairs.map(pair => `${pair.p1_name} - ${pair.p2_name}`).join("\n"),
-            pairs.map(pair => `${pair.p1_name} - ${pair.p2_name}`).join("\n"));
-
-        if (userConfirmed !== null) {
-            const finalPairs = userConfirmed.split("\n").map(line => {
-                const [p1, p2] = line.split(" - ").map(name => name.trim());
-                return { p1_name: p1, p2_name: p2 };
+        .then(response => response.json())
+        .then(pairs => {
+            const tbody = document.getElementById('setting-partner-body');
+            tbody.innerHTML = '';
+            pairs.forEach(pair => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input class="partner1-input w-24 text-center" value="${pair.p1_name}"></td>
+                    <td><input class="partner2-input w-24 text-center" value="${pair.p2_name}"></td>
+                `;
+                tbody.appendChild(row);
             });
+        })
+        .catch(error => console.error("등록 요청 중 오류:", error));
+}
 
-            return fetch('/submit_partner', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ pairs: finalPairs }),
-            });
+function submitPartner() {
+    const settingPartnerTable = document.getElementById('setting-partner-table');
+    const rows = settingPartnerTable.querySelectorAll('tbody tr');
+    const pairs = [];
+
+    rows.forEach(row => {
+        const p1Input = row.querySelector('.partner1-input').value.trim();
+        const p2Input = row.querySelector('.partner2-input').value.trim();
+
+        if (p1Input && p2Input) {
+            pairs.push({ p1_name: p1Input, p2_name: p2Input });
         }
-    })
-    .then(response => {
-        if (response && response.ok) {
-            alert("오늘의 상대가 저장되었습니다.");
-            location.reload();
-        } else if (response) {
-            alert("저장 중 문제가 발생했습니다.");
-        }
-    })
-    .catch(error => {
-        console.error("등록 요청 중 오류:", error);
-        alert("등록 요청에 실패했습니다.");
     });
+
+    fetch('/submit_partner', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pairs: pairs }),
+    })
+        .then(response => {
+            if (response.ok) {
+                alert("오늘의 상대가 저장되었습니다.");
+                location.reload();
+            } else {
+                alert("저장 중 문제가 발생했습니다.");
+            }
+        })
+        .catch(error => {
+            console.error("저장 요청 중 오류:", error);
+            alert("저장 요청에 실패했습니다.");
+        });
 }
 
 function registerPlayers() {

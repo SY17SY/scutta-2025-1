@@ -41,7 +41,9 @@ function populateBettingParticipants(participants, p1Id, p2Id) {
                 <td class="border border-gray-300 p-2 text-center">
                     <input type="radio" name="betting-${participant.id}" value="${p1Id}-${participant.id}" ${isP1Selected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''} />
                 </td>
-                <td class="border border-gray-300 p-2">${participant.name}</td>
+                <td class="border border-gray-300 p-2">
+                    <a href="/player/${participant.id}">${participant.name}</a>
+                </td>
                 <td class="border border-gray-300 p-2 text-center">
                     <input type="radio" name="betting-${participant.id}" value="${p2Id}-${participant.id}" ${isP2Selected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''} />
                 </td>

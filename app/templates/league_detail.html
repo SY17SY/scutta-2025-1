@@ -49,7 +49,9 @@
                 <tbody>
                     {% for row_data in players %}
                     <tr>
-                        <td class="border font-bold px-4 py-2 text-center w-24">{{ row_data.player }}</td>
+                        <td class="border font-bold px-4 py-2 text-center w-24">
+                            <a href="/player/{{ row_data.player_id }}">{{ row_data.player }}</a>
+                        </td>
                         {% for col_data in players %}
                             {% if row_data.index == col_data.index %}
                                 <td class="border px-4 py-2 text-center w-24">X</td>
@@ -65,7 +67,7 @@
                         {% endfor %}
                     </tr>
                     {% endfor %}
-                </tbody>            
+                </tbody>
             </table>
         </div>
         <div class="flex justify-between mb-6">
