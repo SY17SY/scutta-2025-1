@@ -29,6 +29,77 @@ function loadPlayers() {
         .catch(error => console.error('Error loading players:', error));
 }
 
+function resetPartner() {
+    fetch('/reset_partner', {
+        method: 'POST',
+    })
+    .then(response => {
+        if (response.ok) {
+            alert("오늘의 상대가 초기화되었습니다.");
+        } else {
+            alert("초기화에 실패했습니다. 다시 시도해주세요.");
+        }
+    })
+    .catch(error => {
+        console.error("초기화 요청 중 오류:", error);
+        alert("초기화 요청에 실패했습니다.");
+    });
+}
+
+function registerPartner() {
+    const oldPlayerInput = document.getElementById('old-player-input').value.trim();
+    const newPlayerInput = document.getElementById('new-player-input').value.trim();
+
+    if (!oldPlayerInput || !newPlayerInput) {
+        alert("기존 부원 이름과 신입 부원 이름을 모두 입력해주세요.");
+        return;
+    }
+
+    const oldPlayers = oldPlayerInput.split(" ");
+    const newPlayers = newPlayerInput.split(" ").reverse();
+
+    fetch('/register_partner', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ old_players: oldPlayers, new_players: newPlayers, }),
+    })
+    .then(response => response.json())
+    .then(pairs => {
+        const userConfirmed = prompt("자동 매칭된 짝입니다. 수정이 필요하다면 내용을 변경하세요:\n\n" + 
+            pairs.map(pair => `${pair.p1_name} - ${pair.p2_name}`).join("\n"),
+            pairs.map(pair => `${pair.p1_name} - ${pair.p2_name}`).join("\n"));
+
+        if (userConfirmed !== null) {
+            const finalPairs = userConfirmed.split("\n").map(line => {
+                const [p1, p2] = line.split(" - ").map(name => name.trim());
+                return { p1_name: p1, p2_name: p2 };
+            });
+
+            return fetch('/submit_partner', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ pairs: finalPairs }),
+            });
+        }
+    })
+    .then(response => {
+        if (response && response.ok) {
+            alert("오늘의 상대가 저장되었습니다.");
+            location.reload();
+        } else if (response) {
+            alert("저장 중 문제가 발생했습니다.");
+        }
+    })
+    .catch(error => {
+        console.error("등록 요청 중 오류:", error);
+        alert("등록 요청에 실패했습니다.");
+    });
+}
+
 function registerPlayers() {
     const input = document.getElementById('player-input');
     const players = input.value.trim().split(' ');

@@ -853,6 +853,63 @@ def get_log_detail(log_id):
 
 # settings.js
 
+@current_app.route('/reset_partner', methods=['POST'])
+def reset_partner():
+    try:
+        TodayPartner.query.delete()
+        db.session.commit()
+        return "오늘의 상대 초기화 완료", 200
+    except Exception as e:
+        print(e)
+        return "초기화 실패", 500
+
+@current_app.route('/register_partner', methods=['POST'])
+def register_partner():
+    data = request.json
+    old_players = data.get('old_players', [])
+    new_players = data.get('new_players', [])
+
+    if not old_players or not new_players:
+        return jsonify({"error": "부원 이름이 필요합니다."}), 400
+
+    pairs = []
+    old_count = len(old_players)
+    for i, new_player in enumerate(new_players):
+        old_player = old_players[i % old_count]
+        pairs.append({"p1_name": old_player, "p2_name": new_player})
+
+    return jsonify(pairs), 200
+
+@current_app.route('/submit_partner', methods=['POST'])
+def submit_partner():
+    data = request.json
+    pairs = data.get('pairs', [])
+
+    try:
+        for pair in pairs:
+            p1_name = pair['p1_name']
+            p2_name = pair['p2_name']
+
+            p1 = Player.query.filter_by(name=p1_name).first()
+            p2 = Player.query.filter_by(name=p2_name).first()
+
+            if not p1 or not p2:
+                return jsonify({"error": f"{p1_name if not p1 else p2_name}의 정보를 찾을 수 없습니다."}), 400
+
+            today_partner = TodayPartner(
+                p1_id=p1.id,
+                p1_name=p1.name,
+                p2_id=p2.id,
+                p2_name=p2.name
+            )
+            db.session.add(today_partner)
+
+        db.session.commit()
+        return "오늘의 상대 저장 완료", 200
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "저장 중 문제가 발생했습니다."}), 500
+
 @current_app.route('/register_players', methods=['POST'])
 def register_players():
     data = request.get_json()

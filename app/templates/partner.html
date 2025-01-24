@@ -21,7 +21,7 @@
     </header>
 
     <div class="container mx-auto p-4">
-        <h3 class="text-lg font-bold text-center mb-4">경기를 진행하고 결과를 제출하세요!</h3>
+        <h3 class="text-lg font-bold mb-4">경기를 진행하고 결과를 제출하세요!</h3>
         <table class="table w-full border-collapse border border-gray-300 mb-4">
             <thead>
                 <tr class="bg-gray-100">
@@ -35,6 +35,27 @@
     </div>
 
     <script src="../static/js/script.js"></script>
-    <script src="../static/js/partner.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadPartners);
+
+        function loadPartners() {
+            fetch('/get_partners')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('partner-body');
+                    tbody.innerHTML = '';
+                    data.forEach(partner => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${partner.p1_name}</td>
+                            <td>${partner.submitted ? '제출' : '미제출'}</td>
+                            <td>${partner.p2_name}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
 </body>
 </html>
