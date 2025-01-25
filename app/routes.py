@@ -95,6 +95,7 @@ def submit_match():
         winner_name = match.get('winner')
         loser_name = match.get('loser')
         score_value = match.get('score')
+        league_tf = match.get('league')
     
         if not winner_name or not loser_name or not score_value:
             continue
@@ -121,7 +122,10 @@ def submit_match():
         
         if today_partner:
             today_partner.submitted = True
-    
+
+        if league_tf:
+            winner.betting_point += 3
+        
     db.session.commit()
     return jsonify({"message": f"{len(data)}개의 경기 결과가 제출되었습니다!"}), 200
 
@@ -560,6 +564,10 @@ def approve_matches():
             winner.betting_count += 5
             loser.betting_count += 5
         
+        if match.timestamp.weekday() == 6:
+            winner.achieve_count += 1; winner.betting_count += 1
+            loser.achieve_count += 1; loser.betting_count += 1
+        
         match.approved = True
         
     db.session.commit()
@@ -636,6 +644,10 @@ def delete_matches():
             if today_partner:
                 winner.betting_count -= 5
                 loser.betting_count -= 5
+            
+            if match.timestamp.weekday() == 6:
+                winner.achieve_count -= 1; winner.betting_count -= 1
+                loser.achieve_count -= 1; loser.betting_count -= 1
                 
     Match.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
     db.session.commit()

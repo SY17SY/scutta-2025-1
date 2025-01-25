@@ -58,7 +58,7 @@ function submitMatches() {
         const score = row.querySelector('.score-input.selected')?.textContent || '';
 
         if (winner && loser && score) {
-            matches.push({ winner, loser, score });
+            matches.push({ winner, loser, score, league: false });
         }
     });
 

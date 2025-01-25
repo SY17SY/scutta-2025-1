@@ -139,7 +139,7 @@ function submitLeague(leagueId) {
             const loser = value1 > value2 ? playerNames[j + i + 1] : playerNames[i];
             const setScore = value1 > value2 ? `${value1}:${value2}` : `${value2}:${value1}`;
 
-            matches.push({ winner: winner, loser: loser, score: setScore });
+            matches.push({ winner: winner, loser: loser, score: setScore, league: true });
         }
     }
 
