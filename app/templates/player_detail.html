@@ -62,9 +62,12 @@
             </table>
 
             <table class="w-full border-collapse text-center mb-4">
-                <tr><td class="bg-gray-100 border p-2">날이 좋아서</td></tr>
-                <tr><td class="border p-2">누적 30경기 달성</td></tr>
                 <tr>
+                    <td class="bg-gray-100 border p-2">날이 좋아서</td>
+                    <td class="border p-2 text-bold">5점</td>
+                </tr>
+                <tr>
+                    <td class="border p-2">누적 30경기 달성</td>
                     <td class="border p-2">
                         {% if player.match_count < 30 %}
                             {{ (player.match_count * 100 / 30)|round(1) }}%
@@ -72,11 +75,13 @@
                             달성
                         {% endif %}
                     </td>
-                    <td class="border p-2 text-bold">5점</td>
                 </tr>
-                <tr><td class="bg-gray-100 border p-2">날이 좋지 않아서</td></tr>
-                <tr><td class="border p-2">누적 50경기 달성</td></tr>
                 <tr>
+                    <td class="bg-gray-100 border p-2">날이 좋지 않아서</td>
+                    <td class="border p-2 text-bold">10점</td>
+                </tr>
+                <tr>
+                    <td class="border p-2">누적 50경기 달성</td>
                     <td class="border p-2">
                         {% if player.match_count < 50 %}
                             {{ (player.match_count * 100 / 50)|round(1) }}%
@@ -84,11 +89,13 @@
                             달성
                         {% endif %}
                     </td>
-                    <td class="border p-2 text-bold">10점</td>
                 </tr>
-                <tr><td class="bg-gray-100 border p-2">날이 적당해서</td></tr>
-                <tr><td class="border p-2">누적 70경기 달성</td></tr>
                 <tr>
+                    <td class="bg-gray-100 border p-2">날이 적당해서</td>
+                    <td class="border p-2 text-bold">20점</td>
+                </tr>
+                <tr>
+                    <td class="border p-2">누적 70경기 달성</td>
                     <td class="border p-2">
                         {% if player.match_count < 70 %}
                             {{ (player.match_count * 100 / 70)|round(1) }}%
@@ -96,11 +103,13 @@
                             달성
                         {% endif %}
                     </td>
-                    <td class="border p-2 text-bold">20점</td>
                 </tr>
-                <tr><td class="bg-gray-100 border p-2">모든 날이 탁구였다...</td></tr>
-                <tr><td class="border p-2">누적 100경기 달성</td></tr>
                 <tr>
+                    <td class="bg-gray-100 border p-2">모든 날이 탁구였다...</td>
+                    <td class="border p-2 text-bold">30점</td>
+                </tr>
+                <tr>
+                    <td class="border p-2">누적 100경기 달성</td>
                     <td class="border p-2">
                         {% if player.match_count < 100 %}
                             {{ player.match_count }}%
@@ -108,14 +117,16 @@
                             달성
                         {% endif %}
                     </td>
-                    <td class="border p-2 text-bold">30점</td>
                 </tr>
             </table>
 
             <table class="w-full border-collapse text-center mb-4">
-                <tr><td class="bg-gray-100 border p-2">내가 나가</td></tr>
-                <tr><td class="border p-2">누적 30승 달성</td></tr>
                 <tr>
+                    <td class="bg-gray-100 border p-2">내가 나가</td>
+                    <td class="border p-2 text-bold">10점</td>
+                </tr>
+                <tr>
+                    <td class="border p-2">누적 30승 달성</td>
                     <td class="border p-2">
                         {% if player.win_count < 30 %}
                             {{ (player.win_count * 100 / 30)|round(1) }}%
@@ -123,11 +134,13 @@
                             달성
                         {% endif %}
                     </td>
-                    <td class="border p-2 text-bold">10점</td>
                 </tr>
-                <tr><td class="bg-gray-100 border p-2">내가 잘 나가</td></tr>
-                <tr><td class="border p-2">누적 50승 달성</td></tr>
                 <tr>
+                    <td class="bg-gray-100 border p-2">내가 잘 나가</td>
+                    <td class="border p-2 text-bold">20점</td>
+                </tr>
+                <tr>
+                    <td class="border p-2">누적 50승 달성</td>
                     <td class="border p-2">
                         {% if player.win_count < 50 %}
                             {{ (player.win_count * 100 / 50)|round(1) }}%
@@ -135,11 +148,13 @@
                             달성
                         {% endif %}
                     </td>
-                    <td class="border p-2 text-bold">20점</td>
                 </tr>
-                <tr><td class="bg-gray-100 border p-2">내가 제일 잘 나가</td></tr>
-                <tr><td class="border p-2">누적 70승 달성</td></tr>
                 <tr>
+                    <td class="bg-gray-100 border p-2">내가 제일 잘 나가</td>
+                    <td class="border p-2 text-bold">30점</td>
+                </tr>
+                <tr>
+                    <td class="border p-2">누적 70승 달성</td>
                     <td class="border p-2">
                         {% if player.win_count < 70 %}
                             {{ (player.win_count * 100 / 70)|round(1) }}%
@@ -147,14 +162,16 @@
                             달성
                         {% endif %}
                     </td>
-                    <td class="border p-2 text-bold">30점</td>
                 </tr>
             </table>
 
             <table class="w-full border-collapse text-center mb-4">
-                <tr><td class="bg-gray-100 border p-2">숨 참고 Scutta Dive~</td></tr>
-                <tr><td class="border p-2">누적 30패 달성</td></tr>
                 <tr>
+                    <td class="bg-gray-100 border p-2">숨 참고 Scutta Dive~</td>
+                    <td class="border p-2 text-bold">10점</td>
+                </tr>
+                <tr>
+                    <td class="border p-2">누적 30패 달성</td>
                     <td class="border p-2">
                         {% if player.loss_count < 30 %}
                             {{ (player.loss_count * 100 / 30)|round(1) }}%
@@ -162,11 +179,13 @@
                             달성
                         {% endif %}
                     </td>
-                    <td class="border p-2 text-bold">10점</td>
                 </tr>
-                <tr><td class="bg-gray-100 border p-2">Under The Sea~</td></tr>
-                <tr><td class="border p-2">누적 50패 달성</td></tr>
                 <tr>
+                    <td class="bg-gray-100 border p-2">Under The Sea~</td>
+                    <td class="border p-2 text-bold">20점</td>
+                </tr>
+                <tr>
+                    <td class="border p-2">누적 50패 달성</td>
                     <td class="border p-2">
                         {% if player.loss_count < 50 %}
                             {{ (player.loss_count * 100 / 50)|round(1) }}%
@@ -174,11 +193,13 @@
                             달성
                         {% endif %}
                     </td>
-                    <td class="border p-2 text-bold">20점</td>
                 </tr>
-                <tr><td class="bg-gray-100 border p-2">해저 2만 리</td></tr>
-                <tr><td class="border p-2">누적 70패 달성</td></tr>
                 <tr>
+                    <td class="bg-gray-100 border p-2">해저 2만 리</td>
+                    <td class="border p-2 text-bold">30점</td>
+                </tr>
+                <tr>
+                    <td class="border p-2">누적 70패 달성</td>
                     <td class="border p-2">
                         {% if player.loss_count < 70 %}
                             {{ (player.loss_count * 100 / 70)|round(1) }}%
@@ -186,14 +207,16 @@
                             달성
                         {% endif %}
                     </td>
-                    <td class="border p-2 text-bold">30점</td>
                 </tr>
             </table>
 
             <table class="w-full border-collapse text-center mb-4">
-                <tr><td class="bg-gray-100 border p-2">단어장 마스터</td></tr>
-                <tr><td class="border p-2">상대수 10명 달성</td></tr>
                 <tr>
+                    <td class="bg-gray-100 border p-2">단어장 마스터</td>
+                    <td class="border p-2 text-bold">10점</td>
+                </tr>
+                <tr>
+                    <td class="border p-2">상대수 10명 달성</td>
                     <td class="border p-2">
                         {% if player.opponent_count < 10 %}
                             {{ (player.opponent_count * 100 / 10)|round(1) }}%
@@ -201,11 +224,13 @@
                             달성
                         {% endif %}
                     </td>
-                    <td class="border p-2 text-bold">10점</td>
                 </tr>
-                <tr><td class="bg-gray-100 border p-2">인물사전 마스터</td></tr>
-                <tr><td class="border p-2">상대수 30명 달성</td></tr>
                 <tr>
+                    <td class="bg-gray-100 border p-2">인물사전 마스터</td>
+                    <td class="border p-2 text-bold">20점</td>
+                </tr>
+                <tr>
+                    <td class="border p-2">상대수 30명 달성</td>
                     <td class="border p-2">
                         {% if player.opponent_count < 30 %}
                             {{ (player.opponent_count * 100 / 30)|round(1) }}%
@@ -213,11 +238,13 @@
                             달성
                         {% endif %}
                     </td>
-                    <td class="border p-2 text-bold">20점</td>
                 </tr>
-                <tr><td class="bg-gray-100 border p-2">백과사전 마스터</td></tr>
-                <tr><td class="border p-2">상대수 50명 달성</td></tr>
                 <tr>
+                    <td class="bg-gray-100 border p-2">백과사전 마스터</td>
+                    <td class="border p-2 text-bold">30점</td>
+                </tr>
+                <tr>
+                    <td class="border p-2">상대수 50명 달성</td>
                     <td class="border p-2">
                         {% if player.opponent_count < 50 %}
                             {{ (player.opponent_count * 100 / 50)|round(1) }}%
@@ -225,7 +252,6 @@
                             달성
                         {% endif %}
                     </td>
-                    <td class="border p-2 text-bold">30점</td>
                 </tr>
             </table>
         </div>
