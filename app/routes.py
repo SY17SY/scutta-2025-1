@@ -124,7 +124,8 @@ def submit_match():
             today_partner.submitted = True
 
         if league_tf:
-            winner.betting_point += 3
+            winner.betting_count += 3
+            update_player_orders_by_point()
         
     db.session.commit()
     return jsonify({"message": f"{len(data)}개의 경기 결과가 제출되었습니다!"}), 200
@@ -652,6 +653,7 @@ def delete_matches():
     Match.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
     db.session.commit()
     update_player_orders_by_match()
+    update_player_orders_by_point()
     
     return jsonify({'success': True, 'message': f'{len(matches)}개의 승인된 경기와 {len(matches_pending)}개의 미승인된 경기가 삭제되었습니다.'})
 
@@ -728,6 +730,8 @@ def update_ranks():
             else:
                 player.rank_change = None
 
+        update_player_orders_by_point()
+        
         cutline_table_rows = [
             f"""
             <tr>
