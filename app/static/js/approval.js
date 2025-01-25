@@ -116,7 +116,7 @@ function loadMatches(tab, newOffset = 0, startDate = null, endDate = null) {
             const tableBody = document.getElementById('match-table-body');
             if (offset === 0) tableBody.innerHTML = '';
 
-            data.matches.forEach(match => {
+            data.forEach(match => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><input type="checkbox" value="${match.id}" class="select-match"></td>
@@ -128,8 +128,9 @@ function loadMatches(tab, newOffset = 0, startDate = null, endDate = null) {
                 `;
                 tableBody.appendChild(row);
             });
-            document.getElementById('load-more').style.display = data.matches.length < limit ? 'none' : 'block';
-        });
+            document.getElementById('load-more').style.display = data.length < limit ? 'none' : 'block';
+        })
+        .catch(error => console.error('Error fetching matches:', error));
 }
 
 function formatTimestamp(timestamp) {
@@ -198,14 +199,13 @@ function approveMatches() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids })
-    }).then(response => {
-        if (response.ok) {
+    })
+        .then(response => response.json())
+        .then(data => {
             alert(data.message);
             loadMatches(currentTab);
-        } else {
-            alert('승인 실패했습니다.');
-        }
-    });
+        })
+        .catch(error => console.error('Error approving matches:', error));
 }
 
 function deleteMatches() {
@@ -221,14 +221,13 @@ function deleteMatches() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids })
-    }).then(response => {
-        if (response.ok) {
+    })
+        .then(response => response.json())
+        .then(data => {
             alert(data.message);
             loadMatches(currentTab);
-        } else {
-            alert('삭제 실패했습니다.');
-        }
-    });
+        })
+        .catch(error => console.error('Error deleting matches:', error));
 }
 
 function toggleSelectAll(checkbox) {

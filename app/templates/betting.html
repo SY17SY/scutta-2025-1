@@ -27,7 +27,14 @@
                     <th>목록</th>
                 </tr>
             </thead>
-            <tbody id="betting-list">
+            <tbody>
+                {% for betting in bettings %}
+                <tr>
+                    <td>
+                        <a href="/betting/{{ betting.id }}">{{betting.p1_name }} vs {{betting.p2_name }}</a>
+                    </td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>

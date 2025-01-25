@@ -29,7 +29,9 @@ def league():
 
 @current_app.route('/betting.html')
 def betting():
-    return render_template('betting.html')
+    bettings = Betting.query.filter(Betting.submitted == False).order_by(Betting.id.desc()).all()
+    
+    return render_template('betting.html', bettings=bettings)
 
 @current_app.route('/password.html')
 def password():
@@ -137,6 +139,30 @@ def check_players():
     unknown_players = list(player_names - existing_players)
 
     return jsonify({'unknownPlayers': unknown_players})
+
+def update_player_orders_by_point():
+    categories = [
+        ('achieve_order', Player.achieve_count.desc()),
+        ('betting_order', Player.betting_count.desc()),
+    ]
+
+    for order_field, primary_criteria in categories:
+        players = Player.query.filter(Player.is_valid == True).order_by(primary_criteria).all()
+        
+        current_rank = 0
+        previous_primary_value = None
+        
+        primary_field_name = primary_criteria.element.name
+
+        for i, player in enumerate(players, start=1):
+            primary_value = getattr(player, primary_field_name)
+            if primary_value != previous_primary_value:
+                current_rank = i
+                previous_primary_value = primary_value
+            
+            setattr(player, order_field, current_rank)
+
+    db.session.commit()
 
 @current_app.route('/submit_matches', methods=['POST'])
 def submit_matches():
@@ -300,9 +326,20 @@ def search_players():
 
 # betting_approval.js
 
-@current_app.route('/load_bettings', methods=['GET'])
-def load_bettings():
-    bettings = Betting.query.filter(Betting.submitted == True).order_by(Betting.approved, Betting.id.desc()).all()
+@current_app.route('/get_bettings', methods=['GET'])
+def get_bettings():
+    offset = int(request.args.get('offset', 0))
+    limit = int(request.args.get('limit', 30))
+    tab = request.args.get('tab', 'all')
+    
+    query = Betting.query.filter(Betting.submitted == True).order_by(Betting.approved, Betting.id.desc())
+    
+    if tab == 'pending':
+        query = query.filter(Betting.approved == False)
+    elif tab == 'approved':
+        query = query.filter(Betting.approved == True)
+    
+    bettings = query.offset(offset).limit(limit).all()
     
     match_ids = [betting.result for betting in bettings]
     matches = Match.query.filter(Match.id.in_(match_ids)).all()
@@ -355,38 +392,16 @@ def load_bettings():
             })
     
     return jsonify(response)
-    
-def update_player_orders_by_point():
-    categories = [
-        ('achieve_order', Player.achieve_count.desc()),
-        ('betting_order', Player.betting_count.desc()),
-    ]
-
-    for order_field, primary_criteria in categories:
-        players = Player.query.filter(Player.is_valid == True).order_by(primary_criteria).all()
         
-        current_rank = 0
-        previous_primary_value = None
-        
-        primary_field_name = primary_criteria.element.name
-
-        for i, player in enumerate(players, start=1):
-            primary_value = getattr(player, primary_field_name)
-            if primary_value != previous_primary_value:
-                current_rank = i
-                previous_primary_value = primary_value
-            
-            setattr(player, order_field, current_rank)
-
-    db.session.commit()
-    
 @current_app.route('/approve_bettings', methods=['POST'])
 def approve_bettings():
     ids = request.json.get('ids', [])
+    if not ids:
+        return jsonify({'success': False, 'message': '승인할 베팅이 선택되지 않았습니다.'}), 400
+    
     bettings = Betting.query.filter(Betting.id.in_(ids), Betting.approved == False).all()
 
     for betting in bettings:
-        participants = betting.participants
         match = Match.query.filter_by(id=betting.result).first()
 
         if not match:
@@ -399,6 +414,8 @@ def approve_bettings():
         
         winner.betting_count -= betting.point
         loser.betting_count -= betting.point
+        
+        participants = betting.participants
         
         for participant in participants:
             participated_player = Player.query.filter_by(id=participant.participant_id).first()
@@ -426,13 +443,16 @@ def approve_bettings():
 
     db.session.commit()
     update_player_orders_by_point()
-
     return jsonify({"success": True, "message": "선택한 베팅이 승인되었습니다."})
 
 @current_app.route('/delete_bettings', methods=['POST'])
 def delete_bettings():
     ids = request.json.get('ids', [])
+    if not ids:
+        return jsonify({'success': False, 'message': '삭제할 베팅이 선택되지 않았습니다.'}), 400
+    
     bettings = Betting.query.filter(Betting.id.in_(ids), Betting.approved == True).all()
+    bettings_pending = Betting.query.filter(Betting.id.in_(ids), Betting.approved == False).all()
 
     for betting in bettings:
         if betting.approved:
@@ -446,28 +466,42 @@ def delete_bettings():
                 continue
             
             participants = betting.participants
-            winner_participants = [p for p in participants if p.winner_id == winner.id]
+            for participant in participants:
+                participated_player = Player.query.filter_by(id=participant.participant_id).first()
+                participated_player.betting_count += betting.point
             
+            winner_participants = [
+                Player.query.filter_by(id=participant.participant_id).first()
+                for participant in participants
+                if participant.winner_id == winner.id
+            ]
             total_sharers = 1 + len(winner_participants)
+            
             total_points = betting.point * (2 + len(participants))
-            winner_points = total_points + (total_points % total_sharers)
+            winner_points = total_points + (total_points % (1 + len([p for p in participants if p.winner_id == winner.id])))
+            
             share = winner_points // total_sharers
             
-            for participant in winner_participants:
-                participant.betting_count -= share
+            for winner_participant in winner_participants:
+                if winner_participant:
+                    winner_participant.betting_count -= share
             
             winner.betting_count -= share
             
             winner.betting_count += betting.point
             loser.betting_count += betting.point
-            for participant in participants:
-                participant.betting_count += betting.point
     
     Betting.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
     db.session.commit()
     update_player_orders_by_point()
     
-    return jsonify({'success': True, 'message': '선택한 베팅이 삭제되었습니다.'})
+    return jsonify({'success': True, 'message': f'{len(bettings)}개의 승인된 베팅과 {len(bettings_pending)}개의 미승인된 베팅이 삭제되었습니다.'})
+
+@current_app.route('/select_all_bettings', methods=['GET'])
+def select_all_bettings():
+    bettings = Betting.query.filter_by(approved=False).all()
+    result = [betting.id for betting in bettings]
+    return jsonify({'ids': result})
 
 
 # approval.js
@@ -508,7 +542,7 @@ def get_matches():
         }
         for match in matches
     ]
-    return jsonify(matches=response)
+    return jsonify(response)
 
 def calculate_opponent_count(player_id):
     from sqlalchemy import or_
@@ -565,54 +599,56 @@ def approve_matches():
     for match in matches:
         winner = Player.query.get(match.winner)
         loser = Player.query.get(match.loser)
-        if winner and loser:
-            winner.match_count += 1
-            winner.win_count += 1
-            winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2)
-            winner_previous_opponent = winner.opponent_count
-            winner.opponent_count = calculate_opponent_count(winner.id)
-            
-            winner.betting_count += 1
-            
-            loser.match_count += 1
-            loser.loss_count += 1
-            loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2)
-            loser_previous_opponent = loser.opponent_count
-            loser.opponent_count = calculate_opponent_count(loser.id)
-            
-            loser.betting_count += 1
-            
-            if winner.match_count == 30: winner.betting_count += 5; winner.achieve_count += 5
-            if winner.match_count == 50: winner.betting_count += 10; winner.achieve_count += 10
-            if winner.match_count == 70: winner.betting_count += 20; winner.achieve_count += 20
-            if winner.match_count == 100: winner.betting_count += 30; winner.achieve_count += 30
-            if winner.win_count == 30: winner.betting_count += 10; winner.achieve_count += 10
-            if winner.win_count == 50: winner.betting_count += 20; winner.achieve_count += 20
-            if winner.win_count == 70: winner.betting_count += 30; winner.achieve_count += 30
-            
-            if winner_previous_opponent == 9 and winner.opponent_count == 10: winner.betting_count += 5; winner.achieve_count += 5
-            if winner_previous_opponent == 29 and winner.opponent_count == 30: winner.betting_count += 20; winner.achieve_count += 20
-            if winner_previous_opponent == 49 and winner.opponent_count == 50: winner.betting_count += 30; winner.achieve_count += 30
-            
-            if loser.match_count == 30: loser.betting_count += 5; loser.achieve_count += 5
-            if loser.match_count == 50: loser.betting_count += 10; loser.achieve_count += 10
-            if loser.match_count == 70: loser.betting_count += 20; loser.achieve_count += 20
-            if loser.match_count == 100: loser.betting_count += 30; loser.achieve_count += 30
-            if loser.loss_count == 30: loser.betting_count += 10; loser.achieve_count += 10
-            if loser.loss_count == 50: loser.betting_count += 20; loser.achieve_count += 20
-            if loser.loss_count == 70: loser.betting_count += 30; loser.achieve_count += 30
+        if not winner or not loser:
+            continue
+        
+        winner.match_count += 1
+        winner.win_count += 1
+        winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2)
+        winner_previous_opponent = winner.opponent_count
+        winner.opponent_count = calculate_opponent_count(winner.id)
+        
+        winner.betting_count += 1
+        
+        loser.match_count += 1
+        loser.loss_count += 1
+        loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2)
+        loser_previous_opponent = loser.opponent_count
+        loser.opponent_count = calculate_opponent_count(loser.id)
+        
+        loser.betting_count += 1
+        
+        if winner.match_count == 30: winner.betting_count += 5; winner.achieve_count += 5
+        if winner.match_count == 50: winner.betting_count += 10; winner.achieve_count += 10
+        if winner.match_count == 70: winner.betting_count += 20; winner.achieve_count += 20
+        if winner.match_count == 100: winner.betting_count += 30; winner.achieve_count += 30
+        if winner.win_count == 30: winner.betting_count += 10; winner.achieve_count += 10
+        if winner.win_count == 50: winner.betting_count += 20; winner.achieve_count += 20
+        if winner.win_count == 70: winner.betting_count += 30; winner.achieve_count += 30
+        
+        if winner_previous_opponent == 9 and winner.opponent_count == 10: winner.betting_count += 5; winner.achieve_count += 5
+        if winner_previous_opponent == 29 and winner.opponent_count == 30: winner.betting_count += 20; winner.achieve_count += 20
+        if winner_previous_opponent == 49 and winner.opponent_count == 50: winner.betting_count += 30; winner.achieve_count += 30
+        
+        if loser.match_count == 30: loser.betting_count += 5; loser.achieve_count += 5
+        if loser.match_count == 50: loser.betting_count += 10; loser.achieve_count += 10
+        if loser.match_count == 70: loser.betting_count += 20; loser.achieve_count += 20
+        if loser.match_count == 100: loser.betting_count += 30; loser.achieve_count += 30
+        if loser.loss_count == 30: loser.betting_count += 10; loser.achieve_count += 10
+        if loser.loss_count == 50: loser.betting_count += 20; loser.achieve_count += 20
+        if loser.loss_count == 70: loser.betting_count += 30; loser.achieve_count += 30
 
-            if loser_previous_opponent == 9 and loser.opponent_count == 10: loser.betting_count += 5; loser.achieve_count += 5
-            if loser_previous_opponent == 29 and loser.opponent_count == 30: loser.betting_count += 20; loser.achieve_count += 20
-            if loser_previous_opponent == 49 and loser.opponent_count == 50: loser.betting_count += 30; loser.achieve_count += 30
-            
-            if winner.rank is not None and loser.rank is not None:
-                if winner.rank - loser.rank == 8:
-                    winner.betting_count += 30
-                    winner.achieve_count += 30
-                if loser.rank - winner.rank == 8:
-                    loser.betting_count += 3
-                    loser.achieve_count += 3
+        if loser_previous_opponent == 9 and loser.opponent_count == 10: loser.betting_count += 5; loser.achieve_count += 5
+        if loser_previous_opponent == 29 and loser.opponent_count == 30: loser.betting_count += 20; loser.achieve_count += 20
+        if loser_previous_opponent == 49 and loser.opponent_count == 50: loser.betting_count += 30; loser.achieve_count += 30
+        
+        if winner.rank is not None and loser.rank is not None:
+            if winner.rank - loser.rank == 8:
+                winner.betting_count += 30
+                winner.achieve_count += 30
+            if loser.rank - winner.rank == 8:
+                loser.betting_count += 3
+                loser.achieve_count += 3
         
         today_partner = TodayPartner.query.filter_by(p1_id=match.winner, p2_id=match.loser, submitted=True).first()
         if not today_partner:
@@ -646,54 +682,56 @@ def delete_matches():
         if match.approved:
             winner = Player.query.get(match.winner)
             loser = Player.query.get(match.loser)
-            if winner and loser:
-                winner.match_count -= 1
-                winner.win_count -= 1
-                winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2) if winner.match_count > 0 else 0
-                winner_previous_opponent = winner.opponent_count
-                winner.opponent_count = calculate_opponent_count(winner.id)
-                
-                winner.betting_count -= 1
+            if not winner or not loser:
+                continue
+            
+            winner.match_count -= 1
+            winner.win_count -= 1
+            winner.rate_count = round((winner.win_count / winner.match_count) * 100, 2) if winner.match_count > 0 else 0
+            winner_previous_opponent = winner.opponent_count
+            winner.opponent_count = calculate_opponent_count(winner.id)
+            
+            winner.betting_count -= 1
 
-                loser.match_count -= 1
-                loser.loss_count -= 1
-                loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2) if loser.match_count > 0 else 0
-                loser_previous_opponent = loser.opponent_count
-                loser.opponent_count = calculate_opponent_count(loser.id)
-                
-                loser.betting_count -= 1
-                
-                if winner.match_count == 29: winner.betting_count -= 5; winner.achieve_count -= 5
-                if winner.match_count == 49: winner.betting_count -= 10; winner.achieve_count -= 10
-                if winner.match_count == 69: winner.betting_count -= 20; winner.achieve_count -= 20
-                if winner.match_count == 99: winner.betting_count -= 30; winner.achieve_count -= 30
-                if winner.win_count == 29: winner.betting_count -= 10; winner.achieve_count -= 10
-                if winner.win_count == 49: winner.betting_count -= 20; winner.achieve_count -= 20
-                if winner.win_count == 69: winner.betting_count -= 30; winner.achieve_count -= 30
-                
-                if winner_previous_opponent == 10 and winner.opponent_count == 9: winner.betting_count -= 5; winner.achieve_count -= 5
-                if winner_previous_opponent == 30 and winner.opponent_count == 29: winner.betting_count -= 20; winner.achieve_count -= 20
-                if winner_previous_opponent == 50 and winner.opponent_count == 49: winner.betting_count -= 30; winner.achieve_count -= 30
-                
-                if loser.match_count == 29: loser.betting_count -= 5; loser.achieve_count -= 5
-                if loser.match_count == 49: loser.betting_count -= 10; loser.achieve_count -= 10
-                if loser.match_count == 69: loser.betting_count -= 20; loser.achieve_count -= 20
-                if loser.match_count == 99: loser.betting_count -= 30; loser.achieve_count -= 30
-                if loser.loss_count == 29: loser.betting_count -= 10; loser.achieve_count -= 10
-                if loser.loss_count == 49: loser.betting_count -= 20; loser.achieve_count -= 20
-                if loser.loss_count == 69: loser.betting_count -= 30; loser.achieve_count -= 30
+            loser.match_count -= 1
+            loser.loss_count -= 1
+            loser.rate_count = round((loser.win_count / loser.match_count) * 100, 2) if loser.match_count > 0 else 0
+            loser_previous_opponent = loser.opponent_count
+            loser.opponent_count = calculate_opponent_count(loser.id)
+            
+            loser.betting_count -= 1
+            
+            if winner.match_count == 29: winner.betting_count -= 5; winner.achieve_count -= 5
+            if winner.match_count == 49: winner.betting_count -= 10; winner.achieve_count -= 10
+            if winner.match_count == 69: winner.betting_count -= 20; winner.achieve_count -= 20
+            if winner.match_count == 99: winner.betting_count -= 30; winner.achieve_count -= 30
+            if winner.win_count == 29: winner.betting_count -= 10; winner.achieve_count -= 10
+            if winner.win_count == 49: winner.betting_count -= 20; winner.achieve_count -= 20
+            if winner.win_count == 69: winner.betting_count -= 30; winner.achieve_count -= 30
+            
+            if winner_previous_opponent == 10 and winner.opponent_count == 9: winner.betting_count -= 5; winner.achieve_count -= 5
+            if winner_previous_opponent == 30 and winner.opponent_count == 29: winner.betting_count -= 20; winner.achieve_count -= 20
+            if winner_previous_opponent == 50 and winner.opponent_count == 49: winner.betting_count -= 30; winner.achieve_count -= 30
+            
+            if loser.match_count == 29: loser.betting_count -= 5; loser.achieve_count -= 5
+            if loser.match_count == 49: loser.betting_count -= 10; loser.achieve_count -= 10
+            if loser.match_count == 69: loser.betting_count -= 20; loser.achieve_count -= 20
+            if loser.match_count == 99: loser.betting_count -= 30; loser.achieve_count -= 30
+            if loser.loss_count == 29: loser.betting_count -= 10; loser.achieve_count -= 10
+            if loser.loss_count == 49: loser.betting_count -= 20; loser.achieve_count -= 20
+            if loser.loss_count == 69: loser.betting_count -= 30; loser.achieve_count -= 30
 
-                if loser_previous_opponent == 10 and loser.opponent_count == 9: loser.betting_count -= 5; loser.achieve_count -= 5
-                if loser_previous_opponent == 30 and loser.opponent_count == 29: loser.betting_count -= 20; loser.achieve_count -= 20
-                if loser_previous_opponent == 50 and loser.opponent_count == 49: loser.betting_count -= 30; loser.achieve_count -= 30
-                
-                if winner.rank is not None and loser.rank is not None:
-                    if winner.rank - loser.rank == 8:
-                        winner.betting_count -= 30
-                        winner.achieve_count -= 30
-                    if loser.rank - winner.rank == 8:
-                        loser.betting_count -= 3
-                        loser.achieve_count -= 3  
+            if loser_previous_opponent == 10 and loser.opponent_count == 9: loser.betting_count -= 5; loser.achieve_count -= 5
+            if loser_previous_opponent == 30 and loser.opponent_count == 29: loser.betting_count -= 20; loser.achieve_count -= 20
+            if loser_previous_opponent == 50 and loser.opponent_count == 49: loser.betting_count -= 30; loser.achieve_count -= 30
+            
+            if winner.rank is not None and loser.rank is not None:
+                if winner.rank - loser.rank == 8:
+                    winner.betting_count -= 30
+                    winner.achieve_count -= 30
+                if loser.rank - winner.rank == 8:
+                    loser.betting_count -= 3
+                    loser.achieve_count -= 3  
 
             today_partner = TodayPartner.query.filter_by(p1_id=match.winner, p2_id=match.loser, submitted=True).first()
             if not today_partner:
@@ -1202,18 +1240,6 @@ def delete_league(league_id):
     
     
 # betting.js
-
-@current_app.route('/get_bettings', methods=['GET'])
-def get_bettings():
-    bettings = Betting.query.filter(Betting.submitted == False).order_by(Betting.id.desc()).all()
-    response = []
-    for betting in bettings:
-        response.append({
-            'id': betting.id,
-            'p1': betting.p1_name,
-            'p2': betting.p2_name
-        })
-    return jsonify(response)
 
 @current_app.route('/get_players_ranks', methods=['POST'])
 def get_players_ranks():

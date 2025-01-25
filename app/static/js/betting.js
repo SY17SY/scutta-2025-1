@@ -1,24 +1,3 @@
-document.addEventListener('DOMContentLoaded', loadBetting);
-
-function loadBetting() {
-    fetch('/get_bettings')
-        .then(response => response.json())
-        .then(data => {
-            const tbody = document.getElementById('betting-list');
-            tbody.innerHTML = '';
-            data.forEach(bet => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>
-                        <a href="/betting/${bet.id}">${bet.p1} vs ${bet.p2}</a>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        })
-        .catch(error => console.error('Error:', error));
-}
-
 function createBetting() {
     const players = prompt("선수 2명을 입력하세요 (공백으로 구분)").trim().split(" ");
     if (players.length !== 2) {
