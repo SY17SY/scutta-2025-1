@@ -1,7 +1,5 @@
-from flask import render_template, current_app
-from flask import request, jsonify
+from flask import render_template, jsonify, current_app, request
 from app import db
-from sqlalchemy import and_
 from app.models import Match, Player, UpdateLog, League, Betting, BettingParticipant, TodayPartner
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -64,6 +62,65 @@ def player_detail(player_id):
         return "선수를 찾을 수 없습니다.", 404
 
     return render_template('player_detail.html', player=player)
+
+@current_app.route('/league/<int:league_id>', methods=['GET'])
+def league_detail(league_id):
+    league = League.query.get_or_404(league_id)
+    players = [league.p1, league.p2, league.p3, league.p4, league.p5]
+    
+    player_ids = []
+    for player_name in players:
+        player = Player.query.filter_by(name=player_name).first()
+        player_id = player.id if player else None
+        player_ids.append(player_id)
+
+    indexed_players = [{'index': idx, 'player': player_name, 'player_id': player_id} for idx, (player_name, player_id) in enumerate(zip(players, player_ids))]
+    
+    scores = {}
+
+    for row in range(5):
+        for col in range(5):
+            if row != col:
+                key = f"p{row + 1}p{col + 1}"
+                scores[key] = getattr(league, key, None)
+
+    return render_template('league_detail.html', league=league, players=indexed_players, scores=scores)
+
+@current_app.route('/betting/<int:betting_id>', methods=['GET'])
+def betting_detail(betting_id):
+    betting = Betting.query.get_or_404(betting_id)
+    
+    matches = Match.query.filter(
+        ((Match.winner == betting.p1_id) & (Match.loser == betting.p2_id)) |
+        ((Match.winner == betting.p2_id) & (Match.loser == betting.p1_id))
+    ).order_by(Match.timestamp.desc()).limit(10).all()
+
+    recent_matches = []
+    p1_wins, p2_wins = 0, 0
+    for match in matches:
+        if match.winner == betting.p1_id:
+            p1_wins += 1
+            score = match.score
+        else:
+            p2_wins += 1
+            original_score = match.score.split(':')
+            score = f"{original_score[1]}:{original_score[0]}"
+        recent_matches.append({
+            'p1_name': match.winner_name if match.winner == betting.p1_id else match.loser_name,
+            'score': score,
+            'p2_name': match.loser_name if match.winner == betting.p1_id else match.winner_name
+        })
+    
+    participants = [{
+        'name': p.participant_name,
+        'id': p.participant_id,
+        'winner_id': p.winner_id
+    } for p in betting.participants]
+
+    return render_template(
+        'betting_detail.html', betting=betting, participants=participants,
+        recent_matches=recent_matches, win_rate={'p1_wins': p1_wins, 'p2_wins': p2_wins}
+    )
 
 
 # index.js
@@ -1085,21 +1142,6 @@ def get_leagues():
     
     return jsonify(response)
 
-@current_app.route('/league/<int:league_id>', methods=['GET'])
-def view_league(league_id):
-    league = League.query.get_or_404(league_id)
-    players = [league.p1, league.p2, league.p3, league.p4, league.p5]
-    
-    player_ids = []
-    for player_name in players:
-        player = Player.query.filter_by(name=player_name).first()
-        player_id = player.id if player else None
-        player_ids.append(player_id)
-
-    indexed_players = [{'index': idx, 'player': player_name, 'player_id': player_id} for idx, (player_name, player_id) in enumerate(zip(players, player_ids))]
-
-    return render_template('league_detail.html', league=league, players=indexed_players)
-
 @current_app.route('/create_league', methods=['POST'])
 def create_league():
     data = request.get_json()
@@ -1129,19 +1171,6 @@ def create_league():
 
 
 # league_detail.js
-
-@current_app.route('/league/<int:league_id>/detail', methods=['GET'])
-def league_detail(league_id):
-    league = League.query.get_or_404(league_id)
-    scores = {}
-
-    for row in range(5):
-        for col in range(5):
-            if row != col:
-                key = f"p{row + 1}p{col + 1}"
-                scores[key] = getattr(league, key, None)
-
-    return jsonify({'scores': scores})
 
 @current_app.route('/save_league/<int:league_id>', methods=['POST'])
 def save_league(league_id):
@@ -1185,13 +1214,6 @@ def get_bettings():
             'p2': betting.p2_name
         })
     return jsonify(response)
-
-@current_app.route('/betting/<int:betting_id>', methods=['GET'])
-def view_betting(betting_id):
-    betting = Betting.query.get_or_404(betting_id)
-    participants = [p.participant_id for p in betting.participants]
-
-    return render_template('betting_detail.html', betting=betting, participants=participants)
 
 @current_app.route('/get_players_ranks', methods=['POST'])
 def get_players_ranks():
@@ -1297,48 +1319,6 @@ def create_betting():
 
 
 # betting_detail.js
-
-@current_app.route('/betting/<int:betting_id>/details', methods=['GET'])
-def betting_details(betting_id):
-    betting = Betting.query.get_or_404(betting_id)
-
-    p1_id = betting.p1_id
-    p2_id = betting.p2_id
-    
-    matches = Match.query.filter(
-        ((Match.winner == betting.p1_id) & (Match.loser == betting.p2_id)) |
-        ((Match.winner == betting.p2_id) & (Match.loser == betting.p1_id))
-    ).order_by(Match.timestamp.desc()).limit(10).all()
-
-    recent_matches = []
-    p1_wins, p2_wins = 0, 0
-    for match in matches:
-        if match.winner == betting.p1_id:
-            p1_wins += 1
-            score = match.score
-        else:
-            p2_wins += 1
-            original_score = match.score.split(':')
-            score = f"{original_score[1]}:{original_score[0]}"
-        recent_matches.append({
-            'p1_score': match.winner_name if match.winner == betting.p1_id else match.loser_name,
-            'score': score,
-            'p2_score': match.loser_name if match.winner == betting.p1_id else match.winner_name
-        })
-
-    participants = [{
-        'name': p.participant_name,
-        'id': p.participant_id,
-        'winner_id': p.winner_id
-    } for p in betting.participants]
-
-    return jsonify({
-        'recentMatches': recent_matches,
-        'winRate': {'p1_wins': p1_wins, 'p2_wins': p2_wins},
-        'participants': participants,
-        'p1_id': p1_id,
-        'p2_id': p2_id
-    })
 
 @current_app.route('/betting/<int:betting_id>/delete', methods=['DELETE'])
 def delete_betting(betting_id):

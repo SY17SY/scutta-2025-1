@@ -1,33 +1,3 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const leagueId = window.location.pathname.split('/').pop();
-    loadLeagueDetail(leagueId);
-});
-
-function loadLeagueDetail(leagueId) {
-    fetch(`/league/${leagueId}/detail`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('리그 상세 정보를 불러오는 중 문제가 발생했습니다.');
-            }
-            return response.json();
-        })
-        .then(data => {
-            const inputs = document.querySelectorAll('.league-input');
-            inputs.forEach(input => {
-                const row = parseInt(input.getAttribute('data-row'), 10);
-                const col = parseInt(input.getAttribute('data-col'), 10);
-                const key = `p${row + 1}p${col + 1}`;
-
-                if (data.scores && data.scores[key] !== undefined) {
-                    input.value = data.scores[key];
-                }
-            });
-        })
-        .catch(error => {
-            console.error('Error loading league detail:', error);
-        });
-}
-
 document.addEventListener('input', function (event) {
     if (event.target.matches('.league-input')) {
         const input = event.target;

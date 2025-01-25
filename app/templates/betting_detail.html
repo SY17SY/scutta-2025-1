@@ -36,12 +36,20 @@
                     </th>
                 </tr>
             </thead>
-            <tbody id="recent-matches"></tbody>
+            <tbody>
+                {% for match in recent_matches %}
+                <tr>
+                    <td class="border border-gray-300 p-2 text-center">{{ match.p1_name }}</td>
+                    <td class="border border-gray-300 p-2 text-center">{{ match.score }}</td>
+                    <td class="border border-gray-300 p-2 text-center">{{ match.p2_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
             <tfoot>
                 <tr class="bg-gray-100">
-                    <td class="border border-gray-300 p-2 text-center" id="p1-wins"></td>
+                    <td class="border border-gray-300 p-2 text-center">{{ win_rate.p1_wins }}승</td>
                     <td class="border border-gray-300 p-2 text-center">승률</td>
-                    <td class="border border-gray-300 p-2 text-center" id="p2-wins"></td>
+                    <td class="border border-gray-300 p-2 text-center">{{ win_rate.p2_wins }}승</td>
                 </tr>
             </tfoot>
         </table>
@@ -59,7 +67,21 @@
                     </th>
                 </tr>
             </thead>
-            <tbody id="betting-participants"></tbody>
+            <tbody>
+                {% for participant in participants %}
+                <tr>
+                    <td class="border border-gray-300 p-2 text-center">
+                        <input type="radio" name="betting-{{ participant.id }}" value="{{ betting.p1_id }}-{{ participant.id }}" {% if participant.winner_id == betting.p1_id %}checked{% endif %} {% if participant.winner_id is not none %}disabled{% endif %} />
+                    </td>
+                    <td class="border border-gray-300 p-2">
+                        <a href="/player/{{ participant.id }}">{{ participant.name }}</a>
+                    </td>
+                    <td class="border border-gray-300 p-2 text-center">
+                        <input type="radio" name="betting-{{ participant.id }}" value="{{ betting_p2_id }}-{{ participant.id }}" {% if participant.winner_id == betting.p2_id %}checked{% endif %} {% if participant.winner_id is not none %}disabled{% endif %} />
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
 
         <div class="flex justify-between mb-6">

@@ -42,7 +42,9 @@
                     <tr>
                         <th class="border px-4 py-2 w-24 text-center"></th>
                         {% for row_data in players %}
-                            <th class="player-name border px-4 py-2 w-24 text-center">{{ row_data.player }}</th>
+                            <th class="player-name border px-4 py-2 w-24 text-center">
+                                <a href="/player/{{ row_data.player_id }}">{{ row_data.player }}</a>
+                            </th>
                         {% endfor %}
                     </tr>
                 </thead>
@@ -60,7 +62,7 @@
                                     <input class="league-input w-12 text-center"
                                            data-row="{{ row_data.index }}" 
                                            data-col="{{ col_data.index }}" 
-                                           value="{{ league[row_data.index ~ col_data.index] or '' }}"
+                                           value="{{ scores['p' ~ (row_data.index + 1) ~ 'p' ~ (col_data.index + 1)] }}"
                                            inputmode="numeric">
                                 </td>
                             {% endif %}
