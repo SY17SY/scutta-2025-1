@@ -50,7 +50,6 @@ function addMatch() {
 function submitMatches() {
     const matches = [];
     const rows = document.querySelectorAll('.match-row');
-    const unknownPlayers = new Set();
 
     rows.forEach(row => {
         const winner = row.querySelector('.winner-input')?.value.trim() || '';
@@ -63,7 +62,7 @@ function submitMatches() {
     });
 
     if (matches.length === 0) {
-        alert("모든 필드를 채워주세요.");
+        alert("모두 입력해 주세요.");
         return;
     }
 
@@ -84,7 +83,7 @@ function submitMatches() {
         );
 
         if (validMatches.length > 0) {
-            fetch('/submit_match', {
+            fetch('/submit_matches', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(validMatches)
@@ -116,7 +115,7 @@ function submitMatches() {
 }
 
 function selectCategory(button, category) {
-    document.querySelectorAll(".flex.mb-4 button").forEach((btn) => btn.classList.remove("selected"));
+    document.querySelectorAll(".category-buttons button").forEach((btn) => btn.classList.remove("selected"));
     button.classList.add("selected");
 
     currentCategory = category;

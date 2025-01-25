@@ -138,14 +138,14 @@ def check_players():
 
     return jsonify({'unknownPlayers': unknown_players})
 
-@current_app.route('/submit_match', methods=['POST'])
-def submit_match():
-    data = request.get_json()
+@current_app.route('/submit_matches', methods=['POST'])
+def submit_matches():
+    matches = request.get_json()
     
-    if not data or not isinstance(data, list):
+    if not matches or not isinstance(matches, list):
         return jsonify({"error": "올바른 데이터를 제출해주세요."}), 400
 
-    for match in data:
+    for match in matches:
         if not isinstance(match, dict):
             return jsonify({"error": "각 경기 데이터는 객체 형식이어야 합니다."}), 400
         
@@ -185,7 +185,7 @@ def submit_match():
             update_player_orders_by_point()
         
     db.session.commit()
-    return jsonify({"message": f"{len(data)}개의 경기 결과가 제출되었습니다!"}), 200
+    return jsonify({"message": f"{len(matches)}개의 경기 결과가 제출되었습니다!"}), 200
 
 @current_app.route('/rankings', methods=['GET'])
 def rankings():
