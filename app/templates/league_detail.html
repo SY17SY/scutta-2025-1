@@ -62,7 +62,7 @@
                                     <input class="league-input w-12 text-center"
                                            data-row="{{ row_data.index }}" 
                                            data-col="{{ col_data.index }}" 
-                                           value="{{ scores['p' ~ (row_data.index + 1) ~ 'p' ~ (col_data.index + 1)] }}"
+                                           value="{{ scores['p' ~ (row_data.index + 1) ~ 'p' ~ (col_data.index + 1)] if scores['p' ~ (row_data.index + 1) ~ 'p' ~ (col_data.index + 1)] is not none else '' }}"
                                            inputmode="numeric">
                                 </td>
                             {% endif %}
