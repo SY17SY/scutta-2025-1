@@ -24,15 +24,39 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>목록</th>
+                    <th>선수1</th>
+                    <th>선수2</th>
+                    <th>선수3</th>
+                    <th>선수4</th>
+                    <th>선수5</th>
                 </tr>
             </thead>
             <tbody>
                 {% for r in leagues %}
                 <tr>
-                    <td>
+                    <td class=text-center>
                         <a href="/league/{{ r.league.id }}">
-                            {{ r.league.p1 }}({{ r.p1_rank or '무' }}) {{ r.league.p2 }}({{ r.p2_rank or '무' }}) {{ r.league.p3 }}({{ r.p3_rank or '무' }}) {{ r.league.p4 }}({{ r.p4_rank or '무' }}) {{ r.league.p5 }}({{ r.p5_rank or '무' }})
+                            {{ r.league.p1 }}<br>({{ r.p1_rank or '무' }})
+                        </a>
+                    </td>
+                    <td class=text-center>
+                        <a href="/league/{{ r.league.id }}">
+                            {{ r.league.p2 }}<br>({{ r.p2_rank or '무' }})
+                        </a>
+                    </td>
+                    <td class=text-center>
+                        <a href="/league/{{ r.league.id }}">
+                            {{ r.league.p3 }}<br>({{ r.p3_rank or '무' }})
+                        </a>
+                    </td>
+                    <td class=text-center>
+                        <a href="/league/{{ r.league.id }}">
+                            {{ r.league.p4 }}<br>({{ r.p4_rank or '무' }})
+                        </a>
+                    </td>
+                    <td class=text-center>
+                        <a href="/league/{{ r.league.id }}">
+                            {{ r.league.p5 }}<br>({{ r.p5_rank or '무' }})
                         </a>
                     </td>
                 </tr>
