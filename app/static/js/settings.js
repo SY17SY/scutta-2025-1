@@ -1,36 +1,3 @@
-document.addEventListener('DOMContentLoaded', () => {
-    loadPlayers();
-});
-
-function loadPlayers() {
-    fetch('/get_players')
-        .then(response => response.json())
-        .then(data => {
-            const tbody = document.getElementById('player-table-body');
-            tbody.innerHTML = '';
-            data.sort((a, b) => b.is_valid - a.is_valid);
-            data.forEach(player => {
-                const row = document.createElement('tr');
-                row.className = player.is_valid ? '' : 'text-gray-500';
-                row.innerHTML = `
-                    <td><input type="checkbox" class="row-checkbox" data-id="${player.id}"></td>
-                    <td>
-                        <a href="/player/${player.id}">${player.name}</a>
-                    </td>
-                    <td>${player.rate_count}%</td>
-                    <td>${player.match_count}</td>
-                    <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addAchieveAndBetting(${player.id})">전체</button></td>
-                    <td>${player.achieve_count}</td>
-                    <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addAchieve(${player.id})">업적</button></td>
-                    <td>${player.betting_count}</td>
-                    <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addBetting(${player.id})">베팅</button></td>
-                `;
-                tbody.appendChild(row);
-            });
-        })
-        .catch(error => console.error('Error loading players:', error));
-}
-
 function resetPartner() {
     fetch('/reset_partner', {
         method: 'POST',
@@ -145,7 +112,7 @@ function registerPlayers() {
                 if (data.success) {
                     alert(`${data.added_count}명의 선수가 등록되었습니다.`);
                     input.value = "";
-                    loadPlayers();
+                    location.reload();
                 } else {
                     alert('오류가 발생했습니다. 다시 시도해주세요.');
                 }
@@ -173,7 +140,7 @@ function toggleValidity() {
         .then(data => {
             if (data.success) {
                 alert('선수의 유효/무효 상태가 변경되었습니다.');
-                loadPlayers();
+                location.reload();
             } else {
                 alert('유효/무효 상태 변경 중 문제가 발생했습니다.');
             }
@@ -199,7 +166,7 @@ function deleteSelectedPlayers() {
         .then(data => {
             if (data.success) {
                 alert('선택한 선수가 삭제되었습니다.');
-                loadPlayers();
+                location.reload();
             } else {
                 alert('오류가 발생했습니다. 다시 시도해주세요.');
             }
@@ -229,7 +196,7 @@ function addAchieveAndBetting(playerId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                loadPlayers();
+                location.reload();
             } else {
                 alert(`오류 발생: ${data.error}`);
             }
@@ -254,7 +221,7 @@ function addAchieve(playerId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                loadPlayers();
+                location.reload();
             } else {
                 alert(`오류 발생: ${data.error}`);
             }
@@ -279,7 +246,7 @@ function addBetting(playerId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                loadPlayers();
+                location.reload();
             } else {
                 alert(`오류 발생: ${data.error}`);
             }

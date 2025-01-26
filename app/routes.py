@@ -53,7 +53,9 @@ def assignment():
 
 @current_app.route('/settings.html')
 def settings():
-    return render_template('settings.html')
+    players = Player.query.order_by(Player.is_valid.desc(), Player.name).all()
+    
+    return render_template('settings.html', players=players)
 
 @current_app.route('/favicon.ico')
 def favicon():
@@ -1088,23 +1090,6 @@ def register_players():
 
     db.session.commit()
     return jsonify({'success': True, 'added_count': added_count})
-
-@current_app.route('/get_players', methods=['GET'])
-def get_players():
-    players = Player.query.order_by(Player.is_valid.desc(), Player.name).all()
-    response = []
-    for player in players:
-        response.append({
-            'id': player.id,
-            'name': player.name,
-            'win_count': player.win_count,
-            'rate_count': player.rate_count,
-            'match_count': player.match_count,
-            'achieve_count': player.achieve_count,
-            'betting_count': player.betting_count,
-            'is_valid': player.is_valid
-        })
-    return jsonify(response)
 
 @current_app.route('/toggle_validity', methods=['POST'])
 def toggle_validity():

@@ -6,7 +6,7 @@ document.getElementById('update-ranks').addEventListener('click', () => {
             .then(data => {
                 if (data.success) {
                     alert('부수 업데이트가 완료되었습니다.');
-                    location.reload()
+                    location.reload();
                 } else {
                     alert('오류가 발생했습니다.');
                 }
@@ -43,7 +43,7 @@ document.getElementById('revert-log').addEventListener('click', () => {
                 .then(data => {
                     if (data.success) {
                         alert('이전 상태로 복원되었습니다.');
-                        location.reload()
+                        location.reload();
                     } else {
                         alert('복원 중 오류가 발생했습니다.');
                     }
@@ -75,7 +75,7 @@ document.getElementById('delete-selected').addEventListener('click', () => {
         .then(data => {
             if (data.success) {
                 alert('선택한 로그가 삭제되었습니다.');
-                location.reload()
+                location.reload();
             } else {
                 alert('오류가 발생했습니다.');
             }

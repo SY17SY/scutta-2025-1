@@ -86,9 +86,25 @@
                             <th>베팅만</th>
                         </tr>
                     </thead>
-                    <tbody id="player-table-body">
+                    <tbody>
+                        {% for player in players %}
+                        <tr>
+                            <td><input type="checkbox" class="row-checkbox" data-id="{{ player.id }}"></td>
+                            <td>
+                                <a href="/player/{{ player.id }}">{{ player.name }}</a>
+                            </td>
+                            <td>{{ player.rate_count }}%</td>
+                            <td>{{ player.match_count }}</td>
+                            <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addAchieveAndBetting({{ player.id }})">전체</button></td>
+                            <td>{{ player.achieve_count }}</td>
+                            <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addAchieve({{ player.id }})">업적</button></td>
+                            <td>{{ player.betting_count }}</td>
+                            <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addBetting({{ player.id }})">베팅</button></td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
+            </div>
         </div>
     </div>
 
