@@ -21,11 +21,15 @@ def index():
 
 @current_app.route('/partner.html')
 def partner():
-    return render_template('partner.html')
+    partners = TodayPartner.query.order_by(TodayPartner.id).all()
+    
+    return render_template('partner.html', partners=partners)
 
 @current_app.route('/league.html')
 def league():
-    return render_template('league.html')
+    leagues = League.query.order_by(League.id.desc()).all()
+    
+    return render_template('league.html', leagues=leagues)
 
 @current_app.route('/betting.html')
 def betting():
@@ -1145,22 +1149,6 @@ def update_achievement():
 
 # league.js
 
-@current_app.route('/get_leagues', methods=['GET'])
-def get_leagues():
-    leagues = League.query.order_by(League.id.desc()).all()
-    response = []
-    for league in leagues:
-        response.append({
-            'id': league.id,
-            'p1': league.p1,
-            'p2': league.p2,
-            'p3': league.p3,
-            'p4': league.p4,
-            'p5': league.p5
-        })
-    
-    return jsonify(response)
-
 @current_app.route('/create_league', methods=['POST'])
 def create_league():
     data = request.get_json()
@@ -1462,21 +1450,3 @@ def submit_match_internal(match_data):
     db.session.commit()
 
     return {"match_id": new_match.id}
-
-
-# partner.js
-
-@current_app.route('/get_partners', methods=['GET'])
-def get_partners():
-    partners = TodayPartner.query.order_by(TodayPartner.submitted, TodayPartner.id).all()
-    response = []
-    for partner in partners:
-        response.append({
-            'p1_id': partner.p1_id,
-            'p1_name': partner.p1_name,
-            'p2_id': partner.p2_id,
-            'p2_name': partner.p2_name,
-            'submitted': partner.submitted
-        })
-    
-    return jsonify(response)

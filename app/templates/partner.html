@@ -30,36 +30,28 @@
                     <th class="border border-gray-300 p-2">신입부원</th>
                 </tr>
             </thead>
-            <tbody id="partner-body"></tbody>
+            <tbody>
+                {% for partner in partners %}
+                <tr>
+                    <td>
+                        <a href="/player/{{ partner.p1_id }}">{{ partner.p1_name }}</a>
+                    </td>
+                    <td>
+                        {% if partner.submitted %}
+                            제출
+                        {% else %}
+                            미제출
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/player/{{ partner.p2_id }}">{{ partner.p2_name }}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
 
     <script src="../static/js/script.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', loadPartners);
-
-        function loadPartners() {
-            fetch('/get_partners')
-                .then(response => response.json())
-                .then(data => {
-                    const tbody = document.getElementById('partner-body');
-                    tbody.innerHTML = '';
-                    data.forEach(partner => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>
-                                <a href="/player/${partner.p1_id}">${partner.p1_name}</a>
-                            </td>
-                            <td>${partner.submitted ? '제출' : '미제출'}</td>
-                            <td>
-                                <a href="/player/${partner.p2_id}">${partner.p2_name}</a>
-                            </td>
-                        `;
-                        tbody.appendChild(row);
-                    });
-                })
-                .catch(error => console.error('Error:', error));
-        }
-    </script>
 </body>
 </html>

@@ -27,7 +27,14 @@
                     <th>목록</th>
                 </tr>
             </thead>
-            <tbody id="league-list">
+            <tbody>
+                {% for league in leagues %}
+                <tr>
+                    <td>
+                        <a href="/league/{{ league.id }}">{{ league.p1 }} {{ league.p2}} {{ league.p3 }} {{ league.p4 }} {{ league.p5 }}</a>
+                    </td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
