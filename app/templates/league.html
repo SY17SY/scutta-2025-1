@@ -28,10 +28,12 @@
                 </tr>
             </thead>
             <tbody>
-                {% for league in leagues %}
+                {% for r in leagues %}
                 <tr>
                     <td>
-                        <a href="/league/{{ league.id }}">{{ league.p1 }} {{ league.p2}} {{ league.p3 }} {{ league.p4 }} {{ league.p5 }}</a>
+                        <a href="/league/{{ r.league.id }}">
+                            {{ r.league.p1 }}({{ r.p1_rank or '무' }}) {{ r.league.p2 }}({{ r.p2_rank or '무' }}) {{ r.league.p3 }}({{ r.p3_rank or '무' }}) {{ r.league.p4 }}({{ r.p4_rank or '무' }}) {{ r.league.p5 }}({{ r.p5_rank or '무' }})
+                        </a>
                     </td>
                 </tr>
                 {% endfor %}

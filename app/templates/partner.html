@@ -31,20 +31,20 @@
                 </tr>
             </thead>
             <tbody>
-                {% for partner in partners %}
+                {% for row_data in partners %}
                 <tr>
                     <td>
-                        <a href="/player/{{ partner.p1_id }}">{{ partner.p1_name }}</a>
+                        <a href="/player/{{ row_data.partner.p1_id }}">({{ row_data.p1_rank or '무' }})  {{ row_data.partner.p1_name }}</a>
                     </td>
                     <td>
-                        {% if partner.submitted %}
+                        {% if row_data.partner.submitted %}
                             제출
                         {% else %}
                             미제출
                         {% endif %}
                     </td>
                     <td>
-                        <a href="/player/{{ partner.p2_id }}">{{ partner.p2_name }}</a>
+                        <a href="/player/{{ row_data.partner.p2_id }}">{{ row_data.partner.p2_name }}  ({{ row_data.p2_rank or '무' }})</a>
                     </td>
                 </tr>
                 {% endfor %}

@@ -23,19 +23,46 @@ def index():
 def partner():
     partners = TodayPartner.query.order_by(TodayPartner.id).all()
     
-    return render_template('partner.html', partners=partners)
+    p1_ranks = []
+    p2_ranks = []
+    for partner in partners:
+        p1 = Player.query.filter_by(id=partner.p1_id).first()
+        p1_ranks.append(p1.rank)
+        p2 = Player.query.filter_by(id=partner.p2_id).first()
+        p2_ranks.append(p2.rank)
+    
+    indexed_partners = [{'index': idx, 'partner': partner, 'p1_rank': p1_rank, 'p2_rank': p2_rank} for idx, (partner, p1_rank, p2_rank) in enumerate(zip(partners, p1_ranks, p2_ranks))]
+    return render_template('partner.html', partners=indexed_partners)
 
 @current_app.route('/league.html')
 def league():
     leagues = League.query.order_by(League.id.desc()).all()
     
-    return render_template('league.html', leagues=leagues)
+    p1_ranks = []; p2_ranks = []; p3_ranks = []; p4_ranks = []; p5_ranks = []; 
+    for league in leagues:
+        p1 = Player.query.filter_by(name=league.p1).first(); p1_ranks.append(p1.rank)
+        p2 = Player.query.filter_by(name=league.p2).first(); p2_ranks.append(p2.rank)
+        p3 = Player.query.filter_by(name=league.p3).first(); p3_ranks.append(p3.rank)
+        p4 = Player.query.filter_by(name=league.p4).first(); p4_ranks.append(p4.rank)
+        p5 = Player.query.filter_by(name=league.p5).first(); p5_ranks.append(p5.rank)
+    
+    indexed_leagues = [{'index': idx, 'league': league, 'p1_rank': p1_rank, 'p2_rank': p2_rank, 'p3_rank': p3_rank, 'p4_rank': p4_rank, 'p5_rank': p5_rank} for idx, (league, p1_rank, p2_rank, p3_rank, p4_rank, p5_rank) in enumerate(zip(leagues, p1_ranks, p2_ranks, p3_ranks, p4_ranks, p5_ranks))]
+    return render_template('league.html', leagues=indexed_leagues)
 
 @current_app.route('/betting.html')
 def betting():
     bettings = Betting.query.filter(Betting.submitted == False).order_by(Betting.id.desc()).all()
     
-    return render_template('betting.html', bettings=bettings)
+    p1_ranks = []
+    p2_ranks = []
+    for betting in bettings:
+        p1 = Player.query.filter_by(id=betting.p1_id).first()
+        p1_ranks.append(p1.rank)
+        p2 = Player.query.filter_by(id=betting.p2_id).first()
+        p2_ranks.append(p2.rank)
+    
+    indexed_bettings = [{'index': idx, 'betting': betting, 'p1_rank': p1_rank, 'p2_rank': p2_rank} for idx, (betting, p1_rank, p2_rank) in enumerate(zip(bettings, p1_ranks, p2_ranks))]
+    return render_template('betting.html', bettings=indexed_bettings)
 
 @current_app.route('/password.html')
 def password():

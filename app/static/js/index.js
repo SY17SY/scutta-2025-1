@@ -207,9 +207,8 @@ function updateTable(data, append) {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td class="border border-gray-300 p-2">${player.current_rank || ""}</td>
-            <td class="border border-gray-300 p-2">${player.rank || "무"}</td>
             <td class="border border-gray-300 p-2">
-                <a href="/player/${player.id}">${player.name || " "}</a>
+                <a href="/player/${player.id}">(${player.rank || "무"})  ${player.name || " "}</a>
             </td>
             <td class="border border-gray-300 p-2">${player.category_value}</td>
             <td class="border border-gray-300 p-2">${player.category_value_2}</td>
@@ -262,9 +261,8 @@ function searchByName(query) {
                     const row = document.createElement("tr");
                     row.innerHTML = `
                         <td class="border border-gray-300 p-2">${player.current_rank || ""}</td>
-                        <td class="border border-gray-300 p-2">${player.rank || "무"}</td>
                         <td class="border border-gray-300 p-2">
-                            <a href="/player/${player.id}">${player.name || " "}</a>
+                            <a href="/player/${player.id}">(${player.rank || "무"})  ${player.name || " "}</a>
                         </td>
                         <td class="border border-gray-300 p-2">${player.category_value}</td>
                         <td class="border border-gray-300 p-2">${player.category_value_2}</td>

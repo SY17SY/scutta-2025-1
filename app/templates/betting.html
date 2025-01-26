@@ -28,10 +28,10 @@
                 </tr>
             </thead>
             <tbody>
-                {% for betting in bettings %}
+                {% for row_data in bettings %}
                 <tr>
                     <td>
-                        <a href="/betting/{{ betting.id }}">{{ betting.p1_name }} vs {{ betting.p2_name }}</a>
+                        <a href="/betting/{{ row_data.betting.id }}">({{ row_data.p1_rank or '무' }})  {{ row_data.betting.p1_name }} vs {{ row_data.betting.p2_name }}  ({{ row_data.p2_rank or '무' }})</a>
                     </td>
                 </tr>
                 {% endfor %}
