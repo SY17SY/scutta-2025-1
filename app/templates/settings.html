@@ -77,13 +77,13 @@
                         <tr>
                             <th><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
                             <th>이름</th>
+                            <th><button class="bg-main text-white px-2 py-1 rounded" onclick="addForSelected('all')">모두</button></th>
+                            <th><button class="bg-main text-white px-2 py-1 rounded" onclick="addForSelected('achieve')">업적</button></th>
+                            <th>업적</th>
+                            <th><button class="bg-main text-white px-2 py-1 rounded" onclick="addForSelected('betting')">베팅</button></th>
+                            <th>베팅</th>
                             <th>승률</th>
                             <th>경기</th>
-                            <th>전체</th>
-                            <th>업적</th>
-                            <th>업적만</th>
-                            <th>베팅</th>
-                            <th>베팅만</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -93,13 +93,13 @@
                             <td>
                                 <a href="/player/{{ player.id }}">{{ player.name }}</a>
                             </td>
+                            <td><button class="bg-gray-200 text-gray-700 px-2 py-1 rounded" onclick="sendAddRequest([{{ player.id }}], 'all')">모두</button></td>
+                            <td><button class="bg-gray-200 text-gray-700 px-2 py-1 rounded" onclick="sendAddRequest([{{ player.id }}], 'achieve')">업적</button></td>
+                            <td>{{ player.achieve_count }}</td>
+                            <td><button class="bg-gray-200 text-gray-700 px-2 py-1 rounded" onclick="sendAddRequest([{{ player.id }}], 'betting')">베팅</button></td>
+                            <td>{{ player.betting_count }}</td>
                             <td>{{ player.rate_count }}%</td>
                             <td>{{ player.match_count }}</td>
-                            <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addAchieveAndBetting({{ player.id }})">전체</button></td>
-                            <td>{{ player.achieve_count }}</td>
-                            <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addAchieve({{ player.id }})">업적</button></td>
-                            <td>{{ player.betting_count }}</td>
-                            <td><button class="bg-main text-white px-2 py-1 rounded" onclick="addBetting({{ player.id }})">베팅</button></td>
                         </tr>
                         {% endfor %}
                     </tbody>

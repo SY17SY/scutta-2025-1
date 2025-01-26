@@ -124,7 +124,7 @@ function registerPlayers() {
 }
 
 function toggleValidity() {
-    const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.dataset.id);
+    const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.getAttribute('data-id'));
 
     if (selectedIds.length === 0) {
         alert('유효/무효 상태를 변경할 항목을 선택해주세요.');
@@ -149,8 +149,7 @@ function toggleValidity() {
 }
 
 function deleteSelectedPlayers() {
-    const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked'))
-        .map(cb => cb.getAttribute('data-id'));
+    const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.getAttribute('data-id'));
 
     if (selectedIds.length === 0) {
         alert('삭제할 선수를 선택해주세요.');
@@ -179,44 +178,50 @@ function toggleSelectAll(checkbox) {
     checkboxes.forEach(cb => cb.checked = checkbox.checked);
 }
 
-function addAchieveAndBetting(playerId) {
-    const input = prompt('추가할 점수를 입력하세요:')
-    const additionalAchievements = parseInt(input, 10);
+function addForSelected(type) {
+    let playerIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.getAttribute('data-id'));
 
-    if (isNaN(additionalAchievements) || additionalAchievements == 0) {
-        alert('올바른 숫자를 입력해주세요.');
-        return;
-    }
-
-    fetch('/update_achievement', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ player_id: playerId, achievements: additionalAchievements, betting:additionalAchievements })
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(`오류 발생: ${data.error}`);
-            }
+    if (playerIds.length === 0) {
+        const names = prompt('선수 이름을 입력하세요 (공백으로 구분):');
+        if (!names) return;
+        const playerNames = names.split(' ');
+        fetch('/get_player_ids', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ names: playerNames })
         })
-        .catch(error => console.error('Error updating achievements:', error));
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    playerIds = data.player_ids;
+                    sendAddRequest(playerIds, type);
+                } else {
+                    alert(`오류 발생: ${data.error}`);
+                }
+            });
+    } else {
+        sendAddRequest(playerIds, type);
+    }
 }
 
-function addAchieve(playerId) {
-    const input = prompt('추가할 점수를 입력하세요:')
-    const additionalAchievements = parseInt(input, 10);
+function sendAddRequest(playerIds, type) {
+    const points = prompt('추가할 점수를 입력하세요:');
+    const additionalPoints = parseInt(points, 10);
 
-    if (isNaN(additionalAchievements) || additionalAchievements == 0) {
+    if (isNaN(additionalPoints) || additionalPoints === 0) {
         alert('올바른 숫자를 입력해주세요.');
         return;
     }
 
+    const body = { player_ids: playerIds };
+    if (type === 'achieve') body.achieve = additionalPoints;
+    else if (type === 'betting') body.betting = additionalPoints;
+    else body.achieve = body.betting = additionalPoints;
+
     fetch('/update_achievement', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ player_id: playerId, achievements: additionalAchievements })
+        body: JSON.stringify(body)
     })
         .then(response => response.json())
         .then(data => {
@@ -226,30 +231,5 @@ function addAchieve(playerId) {
                 alert(`오류 발생: ${data.error}`);
             }
         })
-        .catch(error => console.error('Error updating achievements:', error));
-}
-
-function addBetting(playerId) {
-    const input = prompt('추가할 점수를 입력하세요:')
-    const additionalAchievements = parseInt(input, 10);
-
-    if (isNaN(additionalAchievements) || additionalAchievements == 0) {
-        alert('올바른 숫자를 입력해주세요.');
-        return;
-    }
-
-    fetch('/update_achievement', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ player_id: playerId, betting: additionalAchievements })
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(`오류 발생: ${data.error}`);
-            }
-        })
-        .catch(error => console.error('Error updating achievements:', error));
+        .catch(error => console.error('Error:', error));
 }

@@ -1121,30 +1121,45 @@ def delete_players():
     update_player_orders_by_point()
     return jsonify({'success': True})
 
+@current_app.route('/get_player_ids', methods=['POST'])
+def get_player_ids():
+    data = request.get_json()
+    names = data.get('names', [])
+
+    if not names:
+        return jsonify({'success': False, 'error': 'No names provided'}), 400
+
+    players = Player.query.filter(Player.name.in_(names)).all()
+    if not players:
+        return jsonify({'success': False, 'error': 'No players found'}), 404
+
+    player_ids = [player.id for player in players]
+    return jsonify({'success': True, 'player_ids': player_ids})
+
 @current_app.route('/update_achievement', methods=['POST'])
 def update_achievement():
     data = request.get_json()
-    player_id = data.get('player_id')
-    additional_achievements = data.get('achievements', 0)
+    player_ids = data.get('player_ids', [])
+    additional_achieve = data.get('achieve', 0)
     additional_betting = data.get('betting', 0)
 
-    if not player_id or (additional_achievements == 0 and additional_betting == 0):
+    if not player_ids or (additional_achieve == 0 and additional_betting == 0):
         return jsonify({'success': False, 'error': 'Invalid data provided'}), 400
 
-    player = Player.query.get(player_id)
-    if not player:
-        return jsonify({'success': False, 'error': 'Player not found'}), 404
+    players = Player.query.filter(Player.id.in_(player_ids)).all()
+    if not players:
+        return jsonify({'success': False, 'error': 'No players found'}), 404
 
-    if additional_achievements != 0:
-        player.achieve_count += additional_achievements
-    
-    if additional_betting != 0:
-        player.betting_count += additional_betting
+    for player in players:
+        if additional_achieve != 0:
+            player.achieve_count += additional_achieve
+        if additional_betting != 0:
+            player.betting_count += additional_betting
     
     db.session.commit()
     update_player_orders_by_point()
 
-    return jsonify({'success': True, 'new_achieve_count': player.achieve_count, 'new_betting_count': player.betting_count})
+    return jsonify({'success': True})
 
 
 # league.js
