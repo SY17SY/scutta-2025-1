@@ -89,11 +89,9 @@ function submitMatches() {
                 body: JSON.stringify(validMatches)
             })
             .then(response => response.json())
-            .then(submitData => {
-                if (submitData.error) {
-                    alert(submitData.error);
-                } else {
-                    alert(submitData.message);
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
                     document.getElementById('match-list').innerHTML = `
                         <div id="match-1" class="flex items-center justify-between mb-2">
                             <input type="text" placeholder="승리" class="winner-input border rounded w-1/3 p-1 text-center mr-2">
@@ -106,6 +104,8 @@ function submitMatches() {
                     `;
                     matchCounter = 1;
                     location.reload();
+                } else {
+                    alert(data.error);
                 }
             })
             .catch(error => console.error('Error:', error));

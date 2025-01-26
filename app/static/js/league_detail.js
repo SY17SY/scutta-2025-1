@@ -61,7 +61,7 @@ function saveLeague(leagueId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('리그전이 저장되었습니다.');
+                alert(data.message);
                 location.reload();
             } else {
                 alert(data.error || '저장에 실패했습니다.');
@@ -114,7 +114,7 @@ function submitLeague(leagueId) {
     }
 
     if (matches.length === 0) {
-        alert("0개의 경기 결과가 제출되었습니다!");
+        alert("제출할 경기 결과가 없습니다. 리그전을 삭제합니다.");
         fetch(`/delete_league/${leagueId}`, { method: 'DELETE' })
             .then(deleteResponse => {
                 if (deleteResponse.ok) {
@@ -134,14 +134,14 @@ function submitLeague(leagueId) {
     })
         .then(response => response.json())
         .then(data => {
-            if (data.message) {
+            if (data.success) {
                 alert(data.message);
                 fetch(`/delete_league/${leagueId}`, { method: 'DELETE' })
-                .then(deleteResponse => {
-                    if (deleteResponse.ok) {
+                .then(data => {
+                    if (data.success) {
                         window.location.href = '/league.html';
                     } else {
-                        alert('리그 데이터를 삭제하지 못했습니다.');
+                        alert(data.error);
                     }
                 })
                 .catch(error => console.error('Error deleting league:', error));

@@ -77,7 +77,7 @@
                         <a href="/player/{{ participant.id }}">{{ participant.name }}</a>
                     </td>
                     <td class="border border-gray-300 p-2 text-center">
-                        <input type="radio" name="betting-{{ participant.id }}" value="{{ betting_p2_id }}-{{ participant.id }}" {% if participant.winner_id == betting.p2_id %}checked{% endif %} {% if participant.winner_id is not none %}disabled{% endif %} />
+                        <input type="radio" name="betting-{{ participant.id }}" value="{{ betting.p2_id }}-{{ participant.id }}" {% if participant.winner_id == betting.p2_id %}checked{% endif %} {% if participant.winner_id is not none %}disabled{% endif %} />
                     </td>
                 </tr>
                 {% endfor %}

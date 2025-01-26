@@ -148,11 +148,13 @@ def betting_detail(betting_id):
             'p2_name': match.loser_name if match.winner == betting.p1_id else match.winner_name
         })
     
+    betting_participants = BettingParticipant.query.filter(BettingParticipant.betting_id == betting.id).order_by(BettingParticipant.id).all()
+    
     participants = [{
         'name': p.participant_name,
         'id': p.participant_id,
         'winner_id': p.winner_id
-    } for p in betting.participants]
+    } for p in betting_participants]
 
     return render_template(
         'betting_detail.html', betting=betting, participants=participants,
@@ -246,7 +248,7 @@ def submit_matches():
             update_player_orders_by_point()
         
     db.session.commit()
-    return jsonify({"message": f"{len(matches)}개의 경기 결과가 제출되었습니다!"}), 200
+    return jsonify({'success': True, 'message': f"{len(matches)}개의 경기 결과가 제출되었습니다!"}), 200
 
 @current_app.route('/rankings', methods=['GET'])
 def rankings():
@@ -484,7 +486,7 @@ def approve_bettings():
 def delete_bettings():
     ids = request.json.get('ids', [])
     if not ids:
-        return jsonify({'success': False, 'message': '삭제할 베팅이 선택되지 않았습니다.'}), 400
+        return jsonify({'error': '삭제할 베팅이 선택되지 않았습니다.'}), 400
     
     bettings = Betting.query.filter(Betting.id.in_(ids), Betting.approved == True).all()
     bettings_pending = Betting.query.filter(Betting.id.in_(ids), Betting.approved == False).all()
@@ -536,6 +538,7 @@ def delete_bettings():
 def select_all_bettings():
     bettings = Betting.query.filter_by(approved=False).all()
     result = [betting.id for betting in bettings]
+    
     return jsonify({'ids': result})
 
 
@@ -627,7 +630,7 @@ def update_player_orders_by_match():
 def approve_matches():
     ids = request.json.get('ids', [])
     if not ids:
-        return jsonify({'success': False, 'message': '승인할 경기가 선택되지 않았습니다.'}), 400
+        return jsonify({'error': '승인할 경기가 선택되지 않았습니다.'}), 400
     
     matches = Match.query.filter(Match.id.in_(ids), Match.approved == False).all()
 
@@ -708,7 +711,7 @@ def approve_matches():
 def delete_matches():
     ids = request.json.get('ids', [])
     if not ids:
-        return jsonify({'success': False, 'message': '삭제할 경기가 선택되지 않았습니다.'}), 400
+        return jsonify({'error': '삭제할 경기가 선택되지 않았습니다.'}), 400
     
     matches = Match.query.filter(Match.id.in_(ids), Match.approved == True).all()
     matches_pending = Match.query.filter(Match.id.in_(ids), Match.approved == False).all()
@@ -939,7 +942,7 @@ def revert_log():
         log = UpdateLog.query.order_by(UpdateLog.timestamp.desc()).first()
 
         if not log:
-            return jsonify({'success': False, 'message': '로그를 찾을 수 없습니다.'})
+            return jsonify({'success': False, 'error': '로그를 찾을 수 없습니다.'})
 
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(log.html_content, 'html.parser')
@@ -1032,7 +1035,7 @@ def delete_logs():
     ids = request.json.get('ids', [])
     UpdateLog.query.filter(UpdateLog.id.in_(ids)).delete(synchronize_session=False)
     db.session.commit()
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'message': '선택한 로그가 삭제되었습니다.'})
 
 @current_app.route('/log/<int:log_id>', methods=['GET'])
 def get_log_detail(log_id):
@@ -1040,7 +1043,7 @@ def get_log_detail(log_id):
     if not log:
         return jsonify({'error': '로그를 찾을 수 없습니다.'}), 404
 
-    return jsonify({'title': log.title, 'html_content': log.html_content})
+    return jsonify({'success': True, 'title': log.title, 'html_content': log.html_content})
 
 
 # settings.js
@@ -1126,7 +1129,7 @@ def register_players():
 def toggle_validity():
     ids = request.json.get('ids', [])
     if not ids:
-        return jsonify({'success': False, 'message': '선택된 항목이 없습니다.'}), 400
+        return jsonify({'success': False, 'error': '선택된 항목이 없습니다.'}), 400
 
     players = Player.query.filter(Player.id.in_(ids)).all()
     for player in players:
@@ -1135,7 +1138,7 @@ def toggle_validity():
     db.session.commit()
     update_player_orders_by_match()
     update_player_orders_by_point()
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'message': '선수의 유효/무효 상태가 변경되었습니다.'})
 
 @current_app.route('/delete_players', methods=['POST'])
 def delete_players():
@@ -1146,7 +1149,7 @@ def delete_players():
     db.session.commit()
     update_player_orders_by_match()
     update_player_orders_by_point()
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'message': '선택한 선수가 삭제되었습니다.'})
 
 @current_app.route('/get_player_ids', methods=['POST'])
 def get_player_ids():
@@ -1232,7 +1235,7 @@ def save_league(league_id):
             setattr(league, key, value)
 
     db.session.commit()
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'message': '리그전이 저장되었습니다.'})
 
 @current_app.route('/delete_league/<int:league_id>', methods=['DELETE'])
 def delete_league(league_id):
@@ -1286,7 +1289,7 @@ def get_betting_counts():
     p2 = Player.query.filter_by(name=players[1]).first()
 
     if not p1 or not p2:
-        return jsonify({'error': '선수를 찾을 수 없습니다.'}), 400
+        return jsonify({'success': False, 'error': '선수를 찾을 수 없습니다.'}), 400
 
     participant_data = []
     for participant_name in participants:
@@ -1300,9 +1303,10 @@ def get_betting_counts():
                 'betting_count': participant.betting_count
             })
         else:
-            return jsonify({'error': f'베팅 참가자 "{participant.name}"을/를 찾을 수 없습니다.'}), 400
+            return jsonify({'success': False, 'error': f'베팅 참가자 "{participant.name}"을/를 찾을 수 없습니다.'}), 400
 
     return jsonify({
+        'success': True,
         'p1': {'name': p1.name, 'betting_count': p1.betting_count},
         'p2': {'name': p2.name, 'betting_count': p2.betting_count},
         'participants': participant_data
@@ -1362,7 +1366,7 @@ def delete_betting(betting_id):
     betting = Betting.query.get_or_404(betting_id)
     db.session.delete(betting)
     db.session.commit()
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'message': '베팅이 삭제되었습니다.'})
 
 @current_app.route('/betting/<int:betting_id>/update', methods=['POST'])
 def update_betting(betting_id):
@@ -1387,7 +1391,7 @@ def update_betting(betting_id):
                 betting_participant.winner_id = winner_id
         
         db.session.commit()
-        return jsonify({'success': True, 'message': '베팅 데이터가 업데이트되었습니다.'})
+        return jsonify({'success': True, 'message': '베팅 데이터가 성공적으로 저장되었습니다!'})
 
     except Exception as e:
         db.session.rollback()
@@ -1440,6 +1444,8 @@ def submit_betting_result():
     
     winner_participants = [p for p in participants if p.winner_id == winner.id]
     win_participants_names = [p.participant_name for p in winner_participants]
+    loser_participants = [p for p in participants if p.winner_id != winner.id]
+    lose_participants_names = [p.participant_name for p in loser_participants]
     total_sharers = 1 + len(winner_participants)
     
     share = winner_points // total_sharers
@@ -1453,6 +1459,7 @@ def submit_betting_result():
         "results": {
             "winnerName": winner.name,
             "winParticipants": win_participants_names,
+            "loseParticipants": lose_participants_names,
             "distributedPoints": share
         }
     }), 200

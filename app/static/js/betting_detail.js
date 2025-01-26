@@ -3,7 +3,7 @@ function deleteBetting(bettingId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('베팅이 삭제되었습니다.');
+                alert(data.message);
                 window.location.href = '/betting.html';
             } else {
                 alert('베팅 삭제에 실패했습니다: ' + data.error);
@@ -33,7 +33,7 @@ function saveBetting(bettingId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('베팅 데이터가 성공적으로 저장되었습니다!');
+                alert(data.message);
                 location.reload();
             } else {
                 alert('베팅 저장 실패: ' + data.error);
@@ -76,14 +76,16 @@ function submitBetting(bettingId) {
             } else {
                 const results = data.results;
                 const winParticipants = results.winParticipants.join(', ');
+                const loseParticipants = results.loseParticipants.join(', ');
 
                 const resultInfo = `
 결과 요약:
 
 승자: ${results.winnerName}
 베팅 성공: ${winParticipants}
-
 분배될 포인트: ${results.distributedPoints}
+
+베팅 실패: ${loseParticipants}
                 `;
 
                 alert(`${resultInfo}`);

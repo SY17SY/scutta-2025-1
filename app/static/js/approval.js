@@ -168,11 +168,11 @@ function approveAllMatches() {
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status === 'success') {
+                    if (data.success) {
                         alert('모든 경기가 승인되었습니다.');
                         loadMatches(currentTab);
                     } else {
-                        alert('승인 처리 중 오류가 발생했습니다.');
+                        alert(data.error);
                     }
                 })
                 .catch(error => {
@@ -202,8 +202,12 @@ function approveMatches() {
     })
         .then(response => response.json())
         .then(data => {
-            alert(data.message);
-            loadMatches(currentTab);
+            if (data.success) {
+                alert(data.message);
+                loadMatches(currentTab);
+            } else {
+                alert(data.error);
+            }
         })
         .catch(error => console.error('Error approving matches:', error));
 }
@@ -224,8 +228,12 @@ function deleteMatches() {
     })
         .then(response => response.json())
         .then(data => {
-            alert(data.message);
-            loadMatches(currentTab);
+            if (data.success) {
+                alert(data.message);
+                loadMatches(currentTab);
+            } else {
+                alert(data.error);
+            }
         })
         .catch(error => console.error('Error deleting matches:', error));
 }

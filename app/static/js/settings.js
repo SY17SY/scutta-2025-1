@@ -139,10 +139,10 @@ function toggleValidity() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('선수의 유효/무효 상태가 변경되었습니다.');
+                alert(data.message);
                 location.reload();
             } else {
-                alert('유효/무효 상태 변경 중 문제가 발생했습니다.');
+                alert('유효/무효 상태 변경 중 문제가 발생했습니다:', data.error);
             }
         })
         .catch(error => console.error('Error toggling validity:', error));
@@ -164,7 +164,7 @@ function deleteSelectedPlayers() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('선택한 선수가 삭제되었습니다.');
+                alert(data.message);
                 location.reload();
             } else {
                 alert('오류가 발생했습니다. 다시 시도해주세요.');

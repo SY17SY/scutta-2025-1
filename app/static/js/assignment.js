@@ -8,7 +8,7 @@ document.getElementById('update-ranks').addEventListener('click', () => {
                     alert('부수 업데이트가 완료되었습니다.');
                     location.reload();
                 } else {
-                    alert('오류가 발생했습니다.');
+                    alert('오류가 발생했습니다: ', data.error);
                 }
             })
             .catch(error => console.error('Error updating ranks:', error));
@@ -16,41 +16,17 @@ document.getElementById('update-ranks').addEventListener('click', () => {
 });
 
 document.getElementById('revert-log').addEventListener('click', () => {
-    const selectedIds = Array.from(document.querySelectorAll('.log-checkbox:checked')).map(cb => cb.value);
-
-    if (selectedIds.length === 0) {
-        alert('이전으로 복원할 로그를 선택해주세요.');
-        return;
-    }
-
-    if (selectedIds.length > 1) {
-        alert('가장 최근 로그 하나만 선택 가능합니다.');
-        return;
-    }
-
-    const selectedId = parseInt(selectedIds[0]);
-    fetch('/logs')
+    fetch('/revert_log', { method: 'POST' })
         .then(response => response.json())
-        .then(logs => {
-            const mostRecentLog = logs[0];
-            if (selectedId !== mostRecentLog.id) {
-                alert('가장 최근 로그만 선택 가능합니다.');
-                return;
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('복원 중 오류가 발생했습니다: ', data.error);
             }
-
-            fetch('/revert_log', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('이전 상태로 복원되었습니다.');
-                        location.reload();
-                    } else {
-                        alert('복원 중 오류가 발생했습니다.');
-                    }
-                })
-                .catch(error => console.error('Error reverting log:', error));
         })
-        .catch(error => console.error('Error fetching logs:', error));
+        .catch(error => console.error('Error reverting log:', error));
 });
 
 document.getElementById('select-all').addEventListener('change', (e) => {
@@ -74,7 +50,7 @@ document.getElementById('delete-selected').addEventListener('click', () => {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('선택한 로그가 삭제되었습니다.');
+                alert(data.message);
                 location.reload();
             } else {
                 alert('오류가 발생했습니다.');
@@ -87,17 +63,21 @@ function showLogDetail(logId) {
     fetch(`/log/${logId}`)
         .then(response => response.json())
         .then(data => {
-            const logDetail = document.getElementById('log-detail');
-            const btnUpdateRanks = document.getElementById('update-ranks');
-            const aboveLogList = document.getElementById('above-log-list');
-            const logListContainer = document.querySelector('table');
-            logDetail.querySelector('#log-title').textContent = data.title;
-            logDetail.querySelector('#log-table-container').innerHTML = data.html_content;
-
-            logDetail.classList.remove('hidden');
-            btnUpdateRanks.classList.add('hidden');
-            aboveLogList.classList.add('hidden');
-            logListContainer.classList.add('hidden');
+            if (data.success) {
+                const logDetail = document.getElementById('log-detail');
+                const btnUpdateRanks = document.getElementById('update-ranks');
+                const aboveLogList = document.getElementById('above-log-list');
+                const logListContainer = document.querySelector('table');
+                logDetail.querySelector('#log-title').textContent = data.title;
+                logDetail.querySelector('#log-table-container').innerHTML = data.html_content;
+    
+                logDetail.classList.remove('hidden');
+                btnUpdateRanks.classList.add('hidden');
+                aboveLogList.classList.add('hidden');
+                logListContainer.classList.add('hidden');
+            } else {
+                alert(data.error);
+            }
         })
         .catch(error => console.error('Error loading log detail:', error));
 }

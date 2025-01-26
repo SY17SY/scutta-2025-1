@@ -91,11 +91,11 @@ function approveAllBettings() {
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status === 'success') {
+                    if (data.success) {
                         alert('모든 베팅이 승인되었습니다.');
                         loadBettings(currentTab);
                     } else {
-                        alert('승인 처리 중 오류가 발생했습니다.');
+                        alert('오류가 발생했습니다.');
                     }
                 })
                 .catch(error => {
@@ -125,8 +125,12 @@ function approveBettings() {
     })
         .then(response => response.json())
         .then(data => {
-            alert(data.message);
-            loadBettings(currentTab);
+            if (data.success) {
+                alert(data.message);
+                loadBettings(currentTab);
+            } else {
+                alert(data.error);
+            }
         })
         .catch(error => console.error('Error approving bettings:', error));
 }
@@ -147,8 +151,12 @@ function deleteBettings() {
     })
         .then(response => response.json())
         .then(data => {
-            alert(data.message);
-            loadBettings(currentTab);
+            if (data.success) {
+                alert(data.message);
+                loadBettings(currentTab);
+            } else {
+                alert('오류가 발생했습니다.');
+            }
         })
         .catch(error => console.error('Error deleting bettings:', error));
 }

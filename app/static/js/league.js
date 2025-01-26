@@ -13,7 +13,7 @@ function createLeague() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('리그전이 생성되었습니다.');
+                alert(data.message);
                 location.reload();
             } else {
                 alert(data.error || '리그전 생성에 실패했습니다.');

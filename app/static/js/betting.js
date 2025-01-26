@@ -33,7 +33,7 @@ function createBetting() {
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.error) {
+                    if (!data.success) {
                         alert(data.error);
                         return;
                     }
@@ -78,7 +78,7 @@ ${data.participants.map(p => `${p.name} 업적: ${p.betting_count}`).join('\n')}
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                alert('베팅이 생성되었습니다.');
+                                alert(data.message);
                                 loadBetting();
                             } else {
                                 alert(data.error || '베팅 생성에 실패했습니다.');
