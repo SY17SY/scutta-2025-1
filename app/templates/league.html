@@ -29,7 +29,7 @@
             </thead>
             <tbody>
                 {% for r in leagues %}
-                <tr>
+                <tr class="[&>td]:border-y [&>td]:border-l-0 [&>td]:border-r-0 first:[&>td]:border-l last:[&>td]:border-r">
                     <td class=text-center>
                         <a href="/league/{{ r.league.id }}">
                             {{ r.league.p1 }}<br>({{ r.p1_rank or '무' }})
