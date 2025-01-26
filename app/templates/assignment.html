@@ -41,7 +41,18 @@
                         <th class="border border-gray-300 p-2">제목</th>
                     </tr>
                 </thead>
-                <tbody id="log-list"></tbody>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td class="border border-gray-300 p-2 text-center">
+                            <input type="checkbox" class="log-checkbox" value="{{ log.id }}">
+                        </td>
+                        <td class="border border-gray-300 p-2 cursor-pointer" onclick="showLogDetail({{ log.id }})">
+                            {{ log.title }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
             </table>
             <div id="log-detail" class="log-detail hidden">
                 <h2 id="log-title" class="text-xl font-bold mb-4"></h2>

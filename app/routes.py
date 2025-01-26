@@ -47,7 +47,9 @@ def approval():
 
 @current_app.route('/assignment.html')
 def assignment():
-    return render_template('assignment.html')
+    logs = UpdateLog.query.order_by(UpdateLog.timestamp.desc()).all()
+    
+    return render_template('assignment.html', logs=logs)
 
 @current_app.route('/settings.html')
 def settings():
@@ -761,11 +763,6 @@ def select_all_matches():
 
 # assignment.js
 
-@current_app.route('/logs', methods=['GET'])
-def get_logs():
-    logs = UpdateLog.query.order_by(UpdateLog.timestamp.desc()).all()
-    return jsonify([{'id': log.id, 'title': log.title} for log in logs])
-
 @current_app.route('/update_ranks', methods=['POST'])
 def update_ranks():
     try:
@@ -906,8 +903,7 @@ def revert_log():
 
         total_players = len(players)
         
-        log_id = request.json.get('log_id')
-        log = UpdateLog.query.get(log_id)
+        log = UpdateLog.query.order_by(UpdateLog.timestamp.desc()).first()
 
         if not log:
             return jsonify({'success': False, 'message': '로그를 찾을 수 없습니다.'})
@@ -996,7 +992,7 @@ def revert_log():
 
         return jsonify({'success': True, 'message': '이전 상태로 복원되었습니다.'})
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})    
+        return jsonify({'success': False, 'error': str(e)})
     
 @current_app.route('/delete_logs', methods=['POST'])
 def delete_logs():

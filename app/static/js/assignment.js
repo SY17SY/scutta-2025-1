@@ -1,27 +1,3 @@
-document.addEventListener('DOMContentLoaded', loadLogs);
-
-function loadLogs() {
-    fetch('/logs')
-        .then(response => response.json())
-        .then(data => {
-            const logList = document.getElementById('log-list');
-            logList.innerHTML = '';
-            data.forEach(log => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="border border-gray-300 p-2 text-center">
-                        <input type="checkbox" class="log-checkbox" value="${log.id}">
-                    </td>
-                    <td class="border border-gray-300 p-2 cursor-pointer" onclick="showLogDetail(${log.id})">
-                        ${log.title}
-                    </td>
-                `;
-                logList.appendChild(row);
-            });
-        })
-        .catch(error => console.error('Error loading logs:', error));
-}
-
 document.getElementById('update-ranks').addEventListener('click', () => {
     const confirmUpdate = confirm('부수 업데이트를 하시겠습니까?');
     if (confirmUpdate) {
@@ -30,7 +6,7 @@ document.getElementById('update-ranks').addEventListener('click', () => {
             .then(data => {
                 if (data.success) {
                     alert('부수 업데이트가 완료되었습니다.');
-                    loadLogs();
+                    location.reload()
                 } else {
                     alert('오류가 발생했습니다.');
                 }
@@ -62,16 +38,12 @@ document.getElementById('revert-log').addEventListener('click', () => {
                 return;
             }
 
-            fetch('/revert_log', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ log_id: selectedId })
-            })
+            fetch('/revert_log', { method: 'POST' })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         alert('이전 상태로 복원되었습니다.');
-                        loadLogs();
+                        location.reload()
                     } else {
                         alert('복원 중 오류가 발생했습니다.');
                     }
@@ -103,7 +75,7 @@ document.getElementById('delete-selected').addEventListener('click', () => {
         .then(data => {
             if (data.success) {
                 alert('선택한 로그가 삭제되었습니다.');
-                loadLogs();
+                location.reload()
             } else {
                 alert('오류가 발생했습니다.');
             }
