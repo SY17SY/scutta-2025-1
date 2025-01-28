@@ -211,7 +211,7 @@ function updateTable(data, append) {
                 <a href="/player/${player.id}">${player.name || " "}  (${player.rank || "무"})</a>
             </td>
             <td class="border border-gray-300 p-2">${player.category_value}</td>
-            <td class="border border-gray-300 p-2">${player.category_value_2}</td>
+            <td class="border border-gray-300 p-2 text-gray-700">${player.category_value_2}</td>
         `;
         tableBody.appendChild(row);
     });
@@ -265,7 +265,7 @@ function searchByName(query) {
                             <a href="/player/${player.id}">${player.name || " "}  (${player.rank || "무"})</a>
                         </td>
                         <td class="border border-gray-300 p-2">${player.category_value}</td>
-                        <td class="border border-gray-300 p-2">${player.category_value_2}</td>
+                        <td class="border border-gray-300 p-2 text-gray-700">${player.category_value_2}</td>
                     `;
                     tableBody.appendChild(row);
                 });

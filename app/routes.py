@@ -106,12 +106,15 @@ def league_detail(league_id):
     players = [league.p1, league.p2, league.p3, league.p4, league.p5]
     
     player_ids = []
+    player_ranks = []
     for player_name in players:
         player = Player.query.filter_by(name=player_name).first()
         player_id = player.id if player else None
+        player_rank = player.rank
         player_ids.append(player_id)
+        player_ranks.append(player_rank)
 
-    indexed_players = [{'index': idx, 'player': player_name, 'player_id': player_id} for idx, (player_name, player_id) in enumerate(zip(players, player_ids))]
+    indexed_players = [{'index': idx, 'player': player_name, 'player_id': player_id, 'player_rank': player_rank} for idx, (player_name, player_id, player_rank) in enumerate(zip(players, player_ids, player_ranks))]
     
     scores = {}
 
@@ -126,6 +129,11 @@ def league_detail(league_id):
 @current_app.route('/betting/<int:betting_id>', methods=['GET'])
 def betting_detail(betting_id):
     betting = Betting.query.get_or_404(betting_id)
+    
+    p1 = Player.query.filter_by(id=betting.p1_id).first()
+    p1_rank = p1.rank
+    p2 = Player.query.filter_by(id=betting.p2_id).first()
+    p2_rank = p2.rank
     
     matches = Match.query.filter(
         ((Match.winner == betting.p1_id) & (Match.loser == betting.p2_id)) |
@@ -157,7 +165,7 @@ def betting_detail(betting_id):
     } for p in betting_participants]
 
     return render_template(
-        'betting_detail.html', betting=betting, participants=participants,
+        'betting_detail.html', betting=betting, participants=participants, rank = {'p1_rank': p1_rank, 'p2_rank': p2_rank},
         recent_matches=recent_matches, win_rate={'p1_wins': p1_wins, 'p2_wins': p2_wins}
     )
 

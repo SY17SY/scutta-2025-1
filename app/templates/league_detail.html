@@ -43,7 +43,7 @@
                         <th class="border px-4 py-2 w-24 text-center"></th>
                         {% for row_data in players %}
                             <th class="player-name border px-4 py-2 w-24 text-center">
-                                <a href="/player/{{ row_data.player_id }}">{{ row_data.player }}</a>
+                                <a href="/player/{{ row_data.player_id }}">{{ row_data.player }}  ({{ row_data.player_rank or '무' }})</a>
                             </th>
                         {% endfor %}
                     </tr>
@@ -52,7 +52,7 @@
                     {% for row_data in players %}
                     <tr>
                         <td class="border font-bold px-4 py-2 text-center w-24">
-                            <a href="/player/{{ row_data.player_id }}">{{ row_data.player }}</a>
+                            <a href="/player/{{ row_data.player_id }}">{{ row_data.player }}  ({{ row_data.player_rank or '무' }})</a>
                         </td>
                         {% for col_data in players %}
                             {% if row_data.index == col_data.index %}

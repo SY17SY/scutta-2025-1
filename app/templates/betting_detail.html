@@ -16,7 +16,7 @@
 <body>
     <header class="flex justify-between items-center p-4 bg-white shadow">
         <button class="text-xl" onclick="history.back()">&larr;</button>
-        <h1 class="text-lg font-bold">{{ betting.p1_name }} vs {{ betting.p2_name }}</h1>
+        <h1 class="text-lg font-bold">({{ rank.p1_rank or '무' }})  {{ betting.p1_name }} vs {{ betting.p2_name }}  ({{ rank.p2_rank or '무' }})</h1>
         <div class="text-sm">{{ config['GLOBAL_TEXTS']['semester'] }}</div>
     </header>
 
@@ -28,11 +28,11 @@
             <thead>
                 <tr class="bg-gray-100">
                     <th class="border border-gray-300 p-2">
-                        <a href="/player/{{ betting.p1_id }}">{{ betting.p1_name }}</a>
+                        <a href="/player/{{ betting.p1_id }}">({{ rank.p1_rank or '무' }})  {{ betting.p1_name }}</a>
                     </th>
                     <th class="border border-gray-300 p-2">세트</th>
                     <th class="border border-gray-300 p-2">
-                        <a href="/player/{{ betting.p2_id }}">{{ betting.p2_name }}</a>
+                        <a href="/player/{{ betting.p2_id }}">{{ betting.p2_name }}  ({{ rank.p2_rank or '무' }})</a>
                     </th>
                 </tr>
             </thead>
