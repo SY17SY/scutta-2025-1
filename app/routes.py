@@ -349,7 +349,7 @@ def search_players():
     secondary_order = secondary_criteria.get(category)
     attribute_name_2 = dynamic_column_2.get(category)
 
-    players = Player.query.filter(Player.name.ilike(f"%{query}%")).order_by(primary_order, secondary_order).all()
+    players = Player.query.filter(Player.name.ilike(f"%{query}%"), Player.is_valid == True).order_by(primary_order, secondary_order).all()
 
     response = []
     for player in players:
