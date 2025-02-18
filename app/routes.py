@@ -1255,10 +1255,10 @@ def delete_league(league_id):
     try:
         db.session.delete(league)
         db.session.commit()
-        return jsonify({'success': True, 'message': '리그가 성공적으로 삭제되었습니다.'}), 200
+        return jsonify({'success': True, 'message': '리그가 성공적으로 삭제되었습니다.'})
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'error': f'리그 삭제 중 오류 발생: {str(e)}'}), 500
+        return jsonify({'success': False, 'error': f'리그 삭제 중 오류 발생: {str(e)}'})
     
     
 # betting.js
