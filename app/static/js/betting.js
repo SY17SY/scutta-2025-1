@@ -39,12 +39,12 @@ function createBetting() {
                     }
 
                     const playerInfo = `
-선수 정보:
-${data.p1.name} 업적: ${data.p1.betting_count}
-${data.p2.name} 업적: ${data.p2.betting_count}
+[선수 정보]
+${data.p1.name} : ${data.p1.betting_count}
+${data.p2.name} : ${data.p2.betting_count}
 
-참가자 정보:
-${data.participants.map(p => `${p.name} 업적: ${p.betting_count}`).join('\n')}
+[참가자 정보]
+${data.participants.map(p => `${p.name} : ${p.betting_count}`).join('\n')}
                     `;
 
                     const minBettingPoint = Math.min(
