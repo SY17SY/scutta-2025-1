@@ -815,7 +815,7 @@ def update_ranks():
         ).all()
 
         total_players = len(players)
-        cal_quotas = [round(total_players * p) for p in [0.05, 0.12, 0.21, 0.32, 0.44, 0.56, 0.68, 0.80, 1.00]]
+        cal_quotas = [round(total_players * p) for p in [0.05, 0.12, 0.21, 0.32, 0.44, 0.57, 0.71, 0.86, 1.00]]
         quotas = []
         for i in range(9):
             result = cal_quotas[i]
