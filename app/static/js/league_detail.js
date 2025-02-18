@@ -137,14 +137,15 @@ function submitLeague(leagueId) {
             if (data.success) {
                 alert(data.message);
                 fetch(`/delete_league/${leagueId}`, { method: 'DELETE' })
-                .then(data => {
-                    if (data.success) {
-                        window.location.href = '/league.html';
-                    } else {
-                        alert(data.error);
-                    }
-                })
-                .catch(error => console.error('Error deleting league:', error));
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            window.location.href = '/league.html';
+                        } else {
+                            alert(data.error);
+                        }
+                    })
+                    .catch(error => console.error('Error deleting league:', error));
             } else {
                 alert('제출 실패: ' + (data.error || '알 수 없는 오류'));
             }
