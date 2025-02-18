@@ -43,7 +43,7 @@
                         <th class="border px-4 py-2 w-24 text-center"></th>
                         {% for row_data in players %}
                             <th class="player-name border px-4 py-2 w-24 text-center">
-                                <a href="/player/{{ row_data.player_id }}">{{ row_data.player }}  ({{ row_data.player_rank or '무' }})</a>
+                                <a href="/player/{{ row_data.player_id }}">{{ row_data.player }}</a>
                             </th>
                         {% endfor %}
                     </tr>
