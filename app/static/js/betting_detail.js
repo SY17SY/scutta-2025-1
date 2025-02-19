@@ -79,13 +79,14 @@ function submitBetting(bettingId) {
                 const loseParticipants = results.loseParticipants.join(', ');
 
                 const resultInfo = `
-결과 요약:
+[결과 요약]
 
-승자: ${results.winnerName}
-베팅 성공: ${winParticipants}
-분배될 포인트: ${results.distributedPoints}
+승리 : ${results.winnerName}
+성공 : ${winParticipants}
+포인트 : ${results.distributedPoints}
 
-베팅 실패: ${loseParticipants}
+패배 : ${results.loserName}
+실패 : ${loseParticipants}
                 `;
 
                 alert(`${resultInfo}`);

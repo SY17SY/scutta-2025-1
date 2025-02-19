@@ -1466,6 +1466,7 @@ def submit_betting_result():
         "message": "베팅 결과가 성공적으로 처리되었습니다!",
         "results": {
             "winnerName": winner.name,
+            "loserName": p2_name,
             "winParticipants": win_participants_names,
             "loseParticipants": lose_participants_names,
             "distributedPoints": share
