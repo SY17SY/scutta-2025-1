@@ -822,11 +822,6 @@ def update_ranks():
             for j in range(i):
                 result = cal_quotas[i] - quotas[j]
             quotas.append(result)
-    
-        for player in players:
-            if player.rate_count == 100 and player.match_count < 7:
-                player.previous_rank = 5
-                quotas[4] -= 1
         
         current_rank = 1
         for player in players:
