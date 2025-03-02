@@ -293,7 +293,7 @@ def rankings():
     secondary_order = secondary_criteria.get(category)
     attribute_name_2 = dynamic_column_2.get(category)
     
-    players = Player.query.filter(Player.is_valid == True).order_by(primary_order, secondary_order).offset(offset).limit(limit).all()
+    players = Player.query.filter(Player.is_valid == True).order_by(primary_order, secondary_order, Player.id).offset(offset).limit(limit).all()
 
     response = []
     for player in players:
