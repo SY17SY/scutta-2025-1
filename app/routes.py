@@ -843,7 +843,7 @@ def update_ranks():
             else:
                 cutline.append({'rank': rank, 'rate_count': 0})
 
-        for player in Player.query.filter(Player.is_valid == True, Player.match_count < 10).all():
+        for player in Player.query.filter(Player.is_valid == True, Player.match_count < 5).all():
             player.previous_rank = None
 
         for player in players:
