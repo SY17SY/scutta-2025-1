@@ -18,10 +18,10 @@ function requestPassword() {
         form.style.borderRadius = '10px';
         form.style.textAlign = 'center';
         form.innerHTML = `
-            <p>베팅을 삭제하려면 비밀번호를 입력하세요.</p>
+            <p>베팅을 수정/삭제하려면 비밀번호를 입력하세요.</p><br>
             <input type="password" id="passwordInput" style="padding: 5px; width: 80%;"><br><br>
-            <button id="confirmButton">확인</button>
-            <button id="cancelButton" style="margin-left: 10px;">취소</button>
+            <button id="cancelButton">취소</button>
+            <button id="confirmButton" style="margin-left: 20px;">확인</button>
         `;
 
         modal.appendChild(form);
@@ -67,6 +67,101 @@ async function deleteBetting(bettingId) {
             }
         })
         .catch(error => console.error('Error deleting betting:', error));
+}
+
+async function addParticipants(bettingId) {
+    const password = await requestPassword();
+    if (!password) {
+        alert('비밀번호를 입력해야 합니다.');
+        return;
+    }
+
+    if (password !== 'yeong6701') {
+        alert('비밀번호가 올바르지 않습니다.');
+        return;
+    }
+
+    const names = prompt('추가할 참가자 이름을 입력하세요 (공백으로 구분):');
+    if (!names) return;
+
+    const playerNames = names.split(' ');
+    fetch('/get_player_ids', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ names: playerNames })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let playerIds = data.player_ids;
+                fetch('/add_participants', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerIds: playerIds, bettingId: bettingId })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            window.location.reload();
+                        } else {
+                            alert('참가자 추가에 실패했습니다: ' + data.error);
+                        }
+                    })
+                    .catch(error => console.error('Error adding participants:', error));
+
+            } else {
+                alert(`오류 발생: ${data.error}`);
+            }
+        });
+} 
+
+async function removeParticipants(bettingId) {
+    const password = await requestPassword();
+    if (!password) {
+        alert('비밀번호를 입력해야 합니다.');
+        return;
+    }
+
+    if (password !== 'yeong6701') {
+        alert('비밀번호가 올바르지 않습니다.');
+        return;
+    }
+
+    const names = prompt('삭제할 참가자 이름을 입력하세요 (공백으로 구분):');
+    if (!names) return;
+
+    const playerNames = names.split(' ');
+    fetch('/get_player_ids', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ names: playerNames })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let playerIds = data.player_ids;
+            fetch('/remove_participants', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ playerIds: playerIds, bettingId: bettingId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert('참가자 삭제 실패했습니다: ' + data.error);
+                }
+            })
+            .catch(error => console.error('Error removing participants:', error));
+
+        } else {
+            alert(`오류 발생: ${data.error}`);
+        }
+    })
+    .catch(error => console.error('Error fetching player IDs:', error));
 }
 
 function saveBetting(bettingId) {

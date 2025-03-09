@@ -1387,6 +1387,82 @@ def delete_betting(betting_id):
     db.session.commit()
     return jsonify({'success': True, 'message': '베팅이 삭제되었습니다.'})
 
+@current_app.route('/add_participants', methods=['POST'])
+def add_participants():
+    data = request.get_json()
+    player_ids = data.get('playerIds', [])
+    betting_id = data.get('bettingId')
+
+    if not player_ids:
+        return jsonify({'success': False, 'error': '추가할 참가자를 찾을 수 없습습니다.'}), 400
+    if not betting_id:
+        return jsonify({'success': False, 'error': '해당 베팅을 찾을 수 없습니다.'}), 400
+
+    betting = Betting.query.get(betting_id)
+    if not betting:
+        return jsonify({'success': False, 'error': '해당 베팅을 찾을 수 없습니다.'}), 404
+
+    point_threshold = betting.point
+    added_participants = []
+
+    for player_id in player_ids:
+        player = Player.query.get(player_id)
+        if (player and 
+            player.betting_count >= point_threshold and
+            player.id != betting.p1_id and
+            player.id != betting.p2_id
+            ):
+            existing_participant = BettingParticipant.query.filter_by(
+                betting_id=betting_id, participant_id=player_id
+            ).first()
+
+            if not existing_participant:
+                new_participant = BettingParticipant(
+                    betting_id=betting_id,
+                    participant_id=player.id,
+                    participant_name=player.name
+                )
+                db.session.add(new_participant)
+                added_participants.append(player.name)
+
+    db.session.commit()
+    
+    participant_names_str = ', '.join(added_participants) if added_participants else '0명'
+    
+    return jsonify({'success': True, 'message': f'참가자 {participant_names_str} (이)가 추가되었습니다.'})
+
+@current_app.route('/remove_participants', methods=['POST'])
+def remove_participants():
+    data = request.get_json()
+    player_ids = data.get('playerIds', [])
+    betting_id = data.get('bettingId')
+
+    if not player_ids:
+        return jsonify({'success': False, 'error': '제거할 참가자를 찾을 수 없습니다.'}), 400
+    if not betting_id:
+        return jsonify({'success': False, 'error': '해당 베팅을 찾을 수 없습니다.'}), 400
+
+    betting = Betting.query.get(betting_id)
+    if not betting:
+        return jsonify({'success': False, 'error': '해당 베팅을 찾을 수 없습니다.'}), 404
+
+    removed_participants = []
+
+    for player_id in player_ids:
+        participant = BettingParticipant.query.filter_by(
+            betting_id=betting_id, participant_id=player_id
+        ).first()
+
+        if participant:
+            removed_participants.append(participant.participant_name)
+            db.session.delete(participant)
+
+    db.session.commit()
+    
+    participant_names_str = ', '.join(removed_participants) if removed_participants else '0명'
+    
+    return jsonify({'success': True, 'message': f'참가자 {participant_names_str} (이)가 제거되었습니다.'})
+
 @current_app.route('/betting/<int:betting_id>/update', methods=['POST'])
 def update_betting(betting_id):
     data = request.get_json()
