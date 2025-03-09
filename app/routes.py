@@ -492,12 +492,7 @@ def approve_bettings():
 
 @current_app.route('/delete_bettings', methods=['POST'])
 def delete_bettings():
-    data = request.json
-    ids = data.get('ids', [])
-    password = data.get('password', '')
-    
-    if password != 'yeong6701':
-        return jsonify({'error': '비밀번호가 올바르지 않습니다.'}), 403
+    ids = request.json.get('ids', [])
     
     if not ids:
         return jsonify({'error': '삭제할 베팅이 선택되지 않았습니다.'}), 400
@@ -1372,6 +1367,12 @@ def create_betting():
 
 @current_app.route('/betting/<int:betting_id>/delete', methods=['DELETE'])
 def delete_betting(betting_id):
+    data = request.json
+    password = data.get('password', '')
+    
+    if password != 'yeong6701':
+        return jsonify({'error': '비밀번호가 올바르지 않습니다.'}), 403
+    
     betting = Betting.query.get_or_404(betting_id)
     db.session.delete(betting)
     db.session.commit()

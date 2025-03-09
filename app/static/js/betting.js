@@ -89,4 +89,5 @@ ${data.participants.map(p => `${p.name} : ${p.betting_count}`).join('\n')}
                 .catch(error => console.error('Error:', error));
         })
         .catch(error => console.error('Error loading players ranks:', error));
+    location.reload();
 }

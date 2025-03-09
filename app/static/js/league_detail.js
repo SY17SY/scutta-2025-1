@@ -71,6 +71,17 @@ function saveLeague(leagueId) {
 }
 
 function submitLeague(leagueId) {
+    const password = prompt('리그전을 제출하려면 비밀번호를 입력하세요.');
+    if (!password) {
+        alert('비밀번호를 입력해야 합니다.');
+        return;
+    }
+
+    if (password !== 'yeong6701') {
+        alert('비밀번호가 올바르지 않습니다.');
+        return;
+    }
+
     const inputs = document.querySelectorAll('.league-input');
     const scores = {};
     let playerNames = [];
