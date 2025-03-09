@@ -604,8 +604,7 @@ def calculate_opponent_count(player_id):
             ))
         )
         .filter(
-            (Match.winner == player_id) | (Match.loser == player_id),
-            Match.approved == True
+            ((Match.winner == player_id) | (Match.loser == player_id)) & (Match.approved == True)
         )
         .scalar()
     )
@@ -652,6 +651,8 @@ def approve_matches():
         loser = Player.query.get(match.loser)
         if not winner or not loser:
             continue
+        
+        match.approved = True
         
         winner.match_count += 1
         winner.win_count += 1
@@ -713,8 +714,6 @@ def approve_matches():
             winner.achieve_count += 1; winner.betting_count += 1
             loser.achieve_count += 1; loser.betting_count += 1
         
-        match.approved = True
-        
     db.session.commit()
     update_player_orders_by_match()
     update_player_orders_by_point()
@@ -735,6 +734,8 @@ def delete_matches():
             loser = Player.query.get(match.loser)
             if not winner or not loser:
                 continue
+            
+            match.approved = False
             
             winner.match_count -= 1
             winner.win_count -= 1
