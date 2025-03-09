@@ -144,6 +144,10 @@ function deleteBettings() {
         return;
     }
 
+    if (!confirm('정말 삭제하시겠습니까?')) {
+        return;
+    }
+
     fetch('/delete_bettings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
