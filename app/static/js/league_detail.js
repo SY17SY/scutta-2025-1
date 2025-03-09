@@ -90,7 +90,7 @@ function requestPassword() {
         form.style.borderRadius = '10px';
         form.style.textAlign = 'center';
         form.innerHTML = `
-            <p>리그전을 제출하려면 비밀번호를 입력하세요:</p>
+            <p>리그전을 제출하려면 비밀번호를 입력하세요.</p>
             <input type="password" id="passwordInput" style="padding: 5px; width: 80%;"><br><br>
             <button id="confirmButton">확인</button>
             <button id="cancelButton" style="margin-left: 10px;">취소</button>
