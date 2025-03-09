@@ -1,4 +1,6 @@
 from flask import render_template, jsonify, current_app, request
+from sqlalchemy import distinct, case, func
+from sqlalchemy.orm import session
 from app import db
 from app.models import Match, Player, UpdateLog, League, Betting, BettingParticipant, TodayPartner
 from datetime import datetime
@@ -592,21 +594,23 @@ def get_matches():
     return jsonify(response)
 
 def calculate_opponent_count(player_id):
-    from sqlalchemy import or_
-
-    matches = Match.query.filter(
-        or_(Match.winner == player_id, Match.loser == player_id),
-        Match.approved == True
-    ).all()
-
-    opponent_ids = set()
-    for match in matches:
-        if match.winner == player_id:
-            opponent_ids.add(match.loser)
-        elif match.loser == player_id:
-            opponent_ids.add(match.winner)
-
-    return len(opponent_ids)
+    count = (
+        session.query(
+            func.count(distinct(
+                case(
+                    (Match.winner == player_id, Match.loser),
+                    (Match.loser == player_id, Match.winner)
+                )
+            ))
+        )
+        .filter(
+            (Match.winner == player_id) | (Match.loser == player_id),
+            Match.approved == True
+        )
+        .scalar()
+    )
+    
+    return count
 
 def update_player_orders_by_match():
     categories = [
