@@ -70,8 +70,50 @@ function saveLeague(leagueId) {
         .catch(error => console.error('Error saving league:', error));
 }
 
-function submitLeague(leagueId) {
-    const password = prompt('리그전을 제출하려면 비밀번호를 입력하세요.');
+function requestPassword() {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.zIndex = '1000';
+
+        const form = document.createElement('div');
+        form.style.backgroundColor = 'white';
+        form.style.padding = '20px';
+        form.style.borderRadius = '10px';
+        form.style.textAlign = 'center';
+        form.innerHTML = `
+            <p>리그전을 제출하려면 비밀번호를 입력하세요:</p>
+            <input type="password" id="passwordInput" style="padding: 5px; width: 80%;"><br><br>
+            <button id="confirmButton">확인</button>
+            <button id="cancelButton" style="margin-left: 10px;">취소</button>
+        `;
+
+        modal.appendChild(form);
+        document.body.appendChild(modal);
+
+        document.getElementById('confirmButton').addEventListener('click', () => {
+            const password = document.getElementById('passwordInput').value;
+            document.body.removeChild(modal);
+            resolve(password);
+        });
+
+        document.getElementById('cancelButton').addEventListener('click', () => {
+            document.body.removeChild(modal);
+            resolve(null);
+        });
+    });
+}
+
+async function submitLeague(leagueId) {
+    const password = await requestPassword();
     if (!password) {
         alert('비밀번호를 입력해야 합니다.');
         return;
