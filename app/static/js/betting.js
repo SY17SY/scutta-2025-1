@@ -79,7 +79,7 @@ ${data.participants.map(p => `${p.name} : ${p.betting_count}`).join('\n')}
                         .then(data => {
                             if (data.success) {
                                 alert(data.message);
-                                loadBetting();
+                                window.location.href = '/betting.html';
                             } else {
                                 alert(data.error || '베팅 생성에 실패했습니다.');
                             }
@@ -89,5 +89,4 @@ ${data.participants.map(p => `${p.name} : ${p.betting_count}`).join('\n')}
                 .catch(error => console.error('Error:', error));
         })
         .catch(error => console.error('Error loading players ranks:', error));
-    location.reload();
 }
