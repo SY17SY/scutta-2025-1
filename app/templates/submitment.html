@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>제출 현황</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <style>
+        .container {
+            margin-top: 80px;
+        }
+    </style>
+</head>
+<body>
+    <header class="flex justify-between items-center p-4 bg-white shadow">
+        <button class="text-xl" onclick="history.back()">&larr;</button>
+        <h1 class="text-lg font-bold">제출 현황</h1>
+        <div class="text-sm">{{ config['GLOBAL_TEXTS']['semester'] }}</div>
+    </header>
+
+    <div class="container mx-auto p-4">
+        <div class="overflow-x-auto">
+            <style>
+                .table-container {
+                    overflow-x: auto;
+                    white-space: nowrap;
+                }
+
+                .table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    table-layout: auto;
+                }
+
+                .table th,
+                .table td {
+                    text-align: center;
+                    padding: 8px;
+                    white-space: nowrap;
+                }
+            </style>
+            <table class="table min-w-full">
+                <thead>
+                    <tr>
+                        <th>승인</th>
+                        <th>승리자</th>
+                        <th>세트</th>
+                        <th>패배자</th>
+                        <th>시각</th>
+                    </tr>
+                </thead>
+                <tbody id="match-table-body">
+                </tbody>
+            </table>
+        </div>
+        <div class="flex justify-center items-center mt-4">
+            <button id="load-more" class="bg-gray-200 text-gray-700 rounded p-2 button">더 보기</button>
+        </div>
+    </div>
+
+    <script src="../static/js/script.js"></script>
+    <script src="../static/js/submitment.js"></script>
+</body>
+</html>

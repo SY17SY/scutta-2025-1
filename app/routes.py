@@ -21,6 +21,10 @@ def health_check():
 def index():
     return render_template('index.html')
 
+@current_app.route('/submitment.html')
+def submitment():
+    return render_template('submitment.html')
+
 @current_app.route('/partner.html')
 def partner():
     partners = TodayPartner.query.order_by(TodayPartner.id).all()
