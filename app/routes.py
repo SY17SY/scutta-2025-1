@@ -595,7 +595,7 @@ def get_matches():
 
 def calculate_opponent_count(player_id):
     count = (
-        session.query(
+        db.session.query(
             func.count(distinct(
                 case(
                     (Match.winner == player_id, Match.loser),
