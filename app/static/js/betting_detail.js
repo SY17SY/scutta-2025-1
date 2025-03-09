@@ -1,5 +1,14 @@
 function deleteBetting(bettingId) {
-    fetch(`/betting/${bettingId}/delete`, { method: 'DELETE' })
+    const password = prompt('삭제하려면 비밀번호를 입력하세요:');
+    if (!password) {
+        alert('비밀번호를 입력해야 합니다.');
+        return;
+    }
+    fetch(`/betting/${bettingId}/delete`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+    })
         .then(response => response.json())
         .then(data => {
             if (data.success) {

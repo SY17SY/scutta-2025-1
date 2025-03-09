@@ -10,6 +10,6 @@ class Config:
         db_url += "?sslmode=require"
     else:
         db_url += "?sslmode=disable"
-    
+        
     SQLALCHEMY_DATABASE_URI = db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False

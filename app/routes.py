@@ -239,7 +239,7 @@ def submit_matches():
             loser=loser.id, 
             loser_name=loser.name, 
             score=score_value, 
-            timestamp=current_time, 
+            timestamp=current_time,
             approved=False
         )
         db.session.add(new_match)
@@ -492,7 +492,13 @@ def approve_bettings():
 
 @current_app.route('/delete_bettings', methods=['POST'])
 def delete_bettings():
-    ids = request.json.get('ids', [])
+    data = request.json
+    ids = data.get('ids', [])
+    password = data.get('password', '')
+    
+    if password != 'yeong6701':
+        return jsonify({'error': '비밀번호가 올바르지 않습니다.'}), 403
+    
     if not ids:
         return jsonify({'error': '삭제할 베팅이 선택되지 않았습니다.'}), 400
     
@@ -672,7 +678,7 @@ def approve_matches():
         if winner.win_count == 50: winner.betting_count += 20; winner.achieve_count += 20
         if winner.win_count == 70: winner.betting_count += 30; winner.achieve_count += 30
         
-        if winner_previous_opponent == 9 and winner.opponent_count == 10: winner.betting_count += 5; winner.achieve_count += 5
+        if winner_previous_opponent == 9 and winner.opponent_count == 10: winner.betting_count += 10; winner.achieve_count += 10
         if winner_previous_opponent == 29 and winner.opponent_count == 30: winner.betting_count += 20; winner.achieve_count += 20
         if winner_previous_opponent == 49 and winner.opponent_count == 50: winner.betting_count += 30; winner.achieve_count += 30
         
