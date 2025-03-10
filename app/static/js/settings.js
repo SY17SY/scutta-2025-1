@@ -16,6 +16,10 @@ function resetPartner() {
 }
 
 function registerPartner() {
+    if (confirm('등록 전, 초기화 먼저 하시겠습니까?')) {
+        resetPartner();
+    }
+
     const resetPartnerButton = document.getElementById('reset-partner-button');
     const oldPlayerInput = document.getElementById('old-player-input');
     const newPlayerInput = document.getElementById('new-player-input');

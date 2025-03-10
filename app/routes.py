@@ -1086,7 +1086,6 @@ def register_partner():
         old_player = old_players[i % old_count]
         pairs.append({"p1_name": old_player, "p2_name": new_player})
 
-    TodayPartner.query.delete()
     db.session.commit()
 
     return jsonify(pairs), 200
@@ -1097,8 +1096,6 @@ def submit_partner():
     pairs = data.get('pairs', [])
 
     try:
-        TodayPartner.query.delete()
-
         for pair in pairs:
             p1_name = pair['p1_name']
             p2_name = pair['p2_name']
