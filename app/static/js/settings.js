@@ -5,6 +5,7 @@ function resetPartner() {
     .then(response => {
         if (response.ok) {
             alert("오늘의 상대가 초기화되었습니다.");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
             alert("초기화에 실패했습니다. 다시 시도해주세요.");
         }
