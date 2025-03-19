@@ -156,6 +156,8 @@ function deleteBettings() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                const match_ids = data.match_ids;
+
                 fetch('/delete_matches', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
