@@ -110,11 +110,11 @@ function approveAllBettings() {
 }
 
 function approveBettings() {
-    const checkboxes = document.querySelectorAll('.select-match:checked');
+    const checkboxes = document.querySelectorAll('.select-betting:checked');
     const ids = Array.from(checkboxes).map(checkbox => checkbox.value);
 
     if (ids.length === 0) {
-        alert('승인할 베팅이 없습니다.');
+        alert('선택된 베팅이 없습니다.');
         return;
     }
 
@@ -136,7 +136,7 @@ function approveBettings() {
 }
 
 function deleteBettings() {
-    const checkboxes = document.querySelectorAll('.select-match:checked');
+    const checkboxes = document.querySelectorAll('.select-betting:checked');
     const ids = Array.from(checkboxes).map(checkbox => checkbox.value);
 
     if (ids.length === 0) {
