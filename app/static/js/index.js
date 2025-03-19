@@ -2,6 +2,7 @@ let currentOffset = 0;
 const limit = 10;
 let allPlayers = [];
 let currentCategory = 'win_order';
+let isAscending = true;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadRankings(currentCategory);
@@ -133,18 +134,29 @@ function selectCategory(button, category) {
     if (query) {
         searchByName(query);
     } else {
-        loadRankings(category);
+        isAscending = true
+        loadRankings(category, false, isAscending);
     }
 }
 
-function loadRankings(category, append = false) {
+function toggleSortOrder() {
+    isAscending = !isAscending;
+    loadRankings(currentCategory, false, isAscending);
+}
+
+function loadRankings(category, append = false, isAscend = isAscending) {
     if (!append) {
         currentOffset = 0;
         currentCategory = category;
         allPlayers = [];
     }
+    if (isAscend) {
+        sort = "asc"
+    } else {
+        sort = "desc"
+    }
 
-    fetch(`/rankings?category=${category}&offset=${currentOffset}&limit=${limit}`)
+    fetch(`/rankings?category=${category}&offset=${currentOffset}&limit=${limit}&sort=${sort}`)
         .then((response) => {
             if (!response.ok) {
                 throw new Error('데이터를 불러오는 중 문제가 발생했습니다.');
@@ -218,7 +230,7 @@ function updateTable(data, append) {
 }
 
 function loadMore() {
-    loadRankings(currentCategory, true);
+    loadRankings(currentCategory, true, isAscending);
 }
 
 let searchTimeout;
@@ -228,7 +240,7 @@ function searchByName(query) {
     const tableBody = document.getElementById("table-body");
 
     if (!query.trim()) {
-        loadRankings(currentCategory, false);
+        loadRankings(currentCategory, false, isAscending);
         return;
     }
 

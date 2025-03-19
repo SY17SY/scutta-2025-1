@@ -269,6 +269,7 @@ def rankings():
     category = request.args.get('category', 'win_order')
     offset = int(request.args.get('offset', 0))
     limit = int(request.args.get('limit', 10))
+    sort = request.args.get('sort', 'asc')
 
     valid_categories = ['win_order', 'loss_order', 'match_order', 'rate_order', 'opponent_order', 'achieve_order', 'betting_order']
     if category not in valid_categories:
@@ -295,6 +296,11 @@ def rankings():
     }
     
     primary_order = getattr(Player, category)
+    if sort == "asc":
+        primary_order = primary_order.asc()
+    elif sort == "desc":
+        primary_order = primary_order.desc()
+    
     attribute_name = category.replace('_order', '_count')
     secondary_order = secondary_criteria.get(category)
     attribute_name_2 = dynamic_column_2.get(category)
