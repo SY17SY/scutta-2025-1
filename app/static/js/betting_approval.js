@@ -156,6 +156,12 @@ function deleteBettings() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                fetch('/delete_matches', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_ids })
+                })
+                    .then(response => response.json())
                 alert(data.message);
                 loadBettings(currentTab);
             } else {

@@ -503,12 +503,22 @@ def delete_bettings():
     if not ids:
         return jsonify({'error': '삭제할 베팅이 선택되지 않았습니다.'}), 400
     
+    db.session.query(BettingParticipant).filter(BettingParticipant.betting_id.in_(ids)).delete(synchronize_session=False)
+    
     bettings = Betting.query.filter(Betting.id.in_(ids), Betting.approved == True).all()
     bettings_pending = Betting.query.filter(Betting.id.in_(ids), Betting.approved == False).all()
+    
+    match_ids = []
 
-    for betting in bettings:
+    for betting in bettings + bettings_pending:
+        if betting.result:
+            match = Match.query.get(betting.result)
+            
+            if match:
+                match_ids.append(match.id)
+        
         if betting.approved:
-            match = Match.query.filter(Match.id == betting.result).first()
+            match = Match.query.get(betting.result)
             if not match:
                 continue
             
@@ -543,11 +553,11 @@ def delete_bettings():
             winner.betting_count += betting.point
             loser.betting_count += betting.point
     
-    Betting.query.filter(Match.id.in_(ids)).delete(synchronize_session=False)
+    Betting.query.filter(Betting.id.in_(ids)).delete(synchronize_session=False)
     db.session.commit()
     update_player_orders_by_point()
     
-    return jsonify({'success': True, 'message': f'{len(bettings)}개의 승인된 베팅과 {len(bettings_pending)}개의 미승인된 베팅이 삭제되었습니다.'})
+    return jsonify({'success': True, 'message': f'{len(bettings)}개의 승인된 베팅과 {len(bettings_pending)}개의 미승인된 베팅이 삭제되었습니다.', 'match_ids': match_ids})
 
 @current_app.route('/select_all_bettings', methods=['GET'])
 def select_all_bettings():
