@@ -156,14 +156,15 @@ function deleteBettings() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const match_ids = data.match_ids;
+                let matchIds = data.match_ids;
 
                 fetch('/delete_matches', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ match_ids })
+                    body: JSON.stringify({ ids: matchIds })
                 })
                     .then(response => response.json())
+                    .catch(error => console.error('Error deleting matches:', error));
                 alert(data.message);
                 loadBettings(currentTab);
             } else {
