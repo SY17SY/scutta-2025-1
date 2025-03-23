@@ -845,29 +845,31 @@ def update_ranks():
         quotas = []
         for i in range(9):
             result = cal_quotas[i]
-            for j in range(i):
-                result = cal_quotas[i] - quotas[j]
+            if i != 0:
+                result = cal_quotas[i] - cal_quotas[i-1]
             quotas.append(result)
-        
+
         current_rank = 1
+        param = 0
+        cutline = []
         for player in players:
             if player.previous_rank is None:
-                while quotas[current_rank - 1] == 0:
-                    current_rank += 1
-                player.previous_rank = current_rank
+                if current_rank != 1:
+                    previous_cutline = next((entry for entry in cutline if entry['rank'] == current_rank - 1), None)
+                    if previous_cutline and player.rate_count == previous_cutline['rate_count']:
+                        param = 1
+                        while True:
+                            target_cutline = next(
+                                (entry for entry in cutline if entry['rank'] == current_rank - param - 1), None)
+                            if not target_cutline or player.rate_count != target_cutline['rate_count']:
+                                break
+                            param += 1
+                player.previous_rank = current_rank - param
+                param = 0
                 quotas[current_rank - 1] -= 1
-                
-        cutline = []
-        for rank in range(1, 10):
-            lowest_player = (
-                Player.query.filter(Player.is_valid == True, Player.previous_rank == rank)
-                .order_by(Player.rate_count)
-                .first()
-            )
-            if lowest_player:
-                cutline.append({'rank': rank, 'rate_count': lowest_player.rate_count})
-            else:
-                cutline.append({'rank': rank, 'rate_count': 0})
+                if quotas[current_rank - 1] == 0:
+                    cutline.append({'rank': current_rank, 'rate_count': player.rate_count})
+                    current_rank += 1
 
         for player in Player.query.filter(Player.is_valid == True, Player.match_count < 5).all():
             player.previous_rank = None
@@ -909,7 +911,7 @@ def update_ranks():
                 <td class="border border-gray-300 p-2">{p.rank_change or ''}</td>
             </tr>
             """
-            for p in Player.query.filter(Player.is_valid == True, Player.rank_change.isnot(None)).order_by(Player.rate_count.desc()).all()
+            for p in Player.query.filter(Player.is_valid == True, Player.match_count >= 5).order_by(Player.rate_count.desc(), Player.match_count.desc()).all()
         ]
 
         html_content = f"""
